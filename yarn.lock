@@ -699,6 +699,66 @@ neo-async@^2.6.0:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
+nodejs-polars-android-arm64@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-android-arm64/-/nodejs-polars-android-arm64-0.8.1.tgz#57a265b0105b5fbd3c4c9916bb4a65eb04021bef"
+  integrity sha512-Ey2P/g1hPbVKPSBamNTZQHsnqjMKRNxrbN1qTwEI58V9Q1+9NBd3fT0/ekBsDL5d+SZoI3QXG/08vD1khKQNAA==
+
+nodejs-polars-darwin-arm64@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-darwin-arm64/-/nodejs-polars-darwin-arm64-0.8.1.tgz#78bade58f24ce18a0a00df7a8e22b2df060485aa"
+  integrity sha512-xJMRPSoQ+hzgtYDNaE0TtHhx73GukMehyPOz+qlbETOco1ibGNw4K3bDzgVvLqNsXKdE7yCOOBmgCwEMRhq1Yw==
+
+nodejs-polars-darwin-x64@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-darwin-x64/-/nodejs-polars-darwin-x64-0.8.1.tgz#c15aac12f61d3f1e44e086e1088c677a8f2603e0"
+  integrity sha512-r/rngCTM2lmVJh+g1VfHjOADVsbuu2qi2UMM9NavX80sRULF23Wq2p5FKPE8mw9cV0BnfG2CldUk3S6/XvcV9A==
+
+nodejs-polars-linux-arm64-gnu@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-linux-arm64-gnu/-/nodejs-polars-linux-arm64-gnu-0.8.1.tgz#499684fe9bd195221adeaa765d15c6320e0b0e13"
+  integrity sha512-gBqebXa58YkvsljC6UXEd+BRf4N9ZMv9nwMEoE6gOVa7h346ZwaQV6xbOjhe5IBxqSSfsqGUmavlC9w/o8n5QA==
+
+nodejs-polars-linux-arm64-musl@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-linux-arm64-musl/-/nodejs-polars-linux-arm64-musl-0.8.1.tgz#0159e3ae1d22e75f2dd78860b001763767373a58"
+  integrity sha512-Qb2kUv7sa1KyKRXEWHQQu7xkYik6hZb2LKCxSDeLFU3Lbu8BWMXJSA9yzwrKNlYfCIML9WXsh2nrzul/d8HvKQ==
+
+nodejs-polars-linux-x64-gnu@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-linux-x64-gnu/-/nodejs-polars-linux-x64-gnu-0.8.1.tgz#893485f0b179d1ece7daa52c8bcee84382c67a7b"
+  integrity sha512-6svWKJqtsDuTTuhPOaqSpCqaLsJfGO6CsPJKLC9/Pis6D+AAeJAg9pZGmw99j8lEHs/UnewVQWx7mx7baq4MLw==
+
+nodejs-polars-linux-x64-musl@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-linux-x64-musl/-/nodejs-polars-linux-x64-musl-0.8.1.tgz#ba2752367a26717bad6849b449eacebf43c2e66a"
+  integrity sha512-vt/GBuZEtoOSJcg/tOsGCqbM9veEzk00Borw9XISCvZgYIzyH3YGbDADHNs6HflSgr67F/VhECRew8pbzv2rVQ==
+
+nodejs-polars-win32-ia32-msvc@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-win32-ia32-msvc/-/nodejs-polars-win32-ia32-msvc-0.8.1.tgz#fd82b1cf91fd8c1f6ca5537bb46062c0b66d6d89"
+  integrity sha512-tl6v2h2XqsVsTm0Cr1wSowkjQ7HDlpMozrMgKdYR9wmJv7O1pEWRMjrhnSb0WpkRh1B3poJJ+YOoNtB/gR7QCQ==
+
+nodejs-polars-win32-x64-msvc@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars-win32-x64-msvc/-/nodejs-polars-win32-x64-msvc-0.8.1.tgz#b68f4f7875177c619951a5b7b960f32e0db5c639"
+  integrity sha512-phpTX2nu/mWICZkXzj8cXK/T4f2BzcCrDwYQL67L32a76FqZ9rY9mI/h/LQwTnQnX3+i2p/tHntgwJecyKFFlA==
+
+nodejs-polars@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/nodejs-polars/-/nodejs-polars-0.8.1.tgz#fe483ba3fcb82fb20e5f8800bc3ac222026f2dbf"
+  integrity sha512-nHCDGHKmNI2xe2M1pD96caXsFEs+R/JkEQwpNIGDlOD58D1JOs0DhHgxY1d3xDw/4ixtOv8ZlLGkWEBuj8UvrQ==
+  optionalDependencies:
+    nodejs-polars-android-arm64 "0.8.1"
+    nodejs-polars-darwin-arm64 "0.8.1"
+    nodejs-polars-darwin-x64 "0.8.1"
+    nodejs-polars-linux-arm64-gnu "0.8.1"
+    nodejs-polars-linux-arm64-musl "0.8.1"
+    nodejs-polars-linux-x64-gnu "0.8.1"
+    nodejs-polars-linux-x64-musl "0.8.1"
+    nodejs-polars-win32-ia32-msvc "0.8.1"
+    nodejs-polars-win32-x64-msvc "0.8.1"
+
 normalize-path@^3.0.0, normalize-path@~3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz"
@@ -830,6 +890,11 @@ set-cookie-parser@^2.5.1:
   version "2.6.0"
   resolved "https://registry.npmjs.org/set-cookie-parser/-/set-cookie-parser-2.6.0.tgz"
   integrity sha512-RVnVQxTXuerk653XfuliOxBP81Sf0+qfQE73LIYKcyMYHG94AuH0kgrQpRDuTZnSmjpysHmzxJXKNfa6PjFhyQ==
+
+simple-svelte-autocomplete@^2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/simple-svelte-autocomplete/-/simple-svelte-autocomplete-2.5.2.tgz#0608a0fabe95a46da77b988b4542b4dadaa287cc"
+  integrity sha512-6+kZP3XQGb7zs0djTWoFv8tQorBZdv64YfCKrlsYIYBCFsEeikSiNsBSSYw1Om+LYmFeMEOAYSSKoEw+qpnBXQ==
 
 sirv@^2.0.2:
   version "2.0.2"

@@ -11,9 +11,9 @@ function toggleDisplay() {
 
 <div>
 {#if show_long}
-	<a href="#" on:click|preventDefault={toggleDisplay}>{text}</a> <br />
+	<a href="" on:click|preventDefault={toggleDisplay}>{text}</a> <br />
 	<slot></slot>
 {:else}
-		<a href="#" on:click|preventDefault={toggleDisplay}>{text}</a> 
+		<a href="" on:click|preventDefault={toggleDisplay}>{text}</a> 
 {/if}
 </div>
