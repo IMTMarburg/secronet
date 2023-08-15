@@ -61,9 +61,25 @@
   }
 
   onMount(async () => {
-	  bk();
+	  //bk();
+	  selected = "ABHD14B / OID20921 / ENSG00000114779";
 
   });
+
+
+
+	let dataset = "secretome/olink/TCell_Anna_Steitz/";
+
+
+  async function getRow(identifier) {
+  if (!identifier) return;
+	const url = base + "/row/?identifier=" + encodeURIComponent(identifier) + "&dataset=" + encodeURIComponent(dataset);
+	const response = await fetch(url);
+	const json = await response.json();
+	return json;
+  }
+
+  $: row = getRow(selected);
 </script>
 
 <DatasetAutoComplete
@@ -74,4 +90,14 @@
 />
 {selected}
 
-<div bind:this={bokeh_target}>hello</div>
+<div style="border: 1px solid black">
+{#await row} Loading... 
+{:then value}
+	<pre>
+	the row is {JSON.stringify(value, null, 2)}...
+	</pre>
+{/await}
+</div>
+
+<div bind:this={bokeh_target}></div>
+
