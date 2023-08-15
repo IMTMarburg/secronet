@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@bokeh/bokehjs@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@bokeh/bokehjs/-/bokehjs-3.2.2.tgz#51f28c26d4446f6c2069bd3d0f94a8f38608bbf5"
+  integrity sha512-Eh/mSsiG4VfJcMa5hDKTSBt76vBUFC6LLte1Ptf0j8GvpnXhynIADiLzDau++wiWVS7dxn7T09/CPYWBh5RGQw==
+
 "@esbuild/android-arm64@0.17.15":
   version "0.17.15"
   resolved "https://registry.yarnpkg.com/@esbuild/android-arm64/-/android-arm64-0.17.15.tgz#893ad71f3920ccb919e1757c387756a9bca2ef42"
