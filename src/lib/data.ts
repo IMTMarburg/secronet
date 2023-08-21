@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import pl from "nodejs-polars";
+import { globSync } from "glob";
 
 let database_root = path.resolve("database/1/") + "/";
 const index_separator = " / ";
@@ -11,14 +12,62 @@ interface Meta {
   };
 }
 
-async function get_meta(dataset: string): Promise<Meta> {
+interface Dataset {
+  name: string;
+  description: string;
+}
+
+var cached_datasets = null;
+export async function list_datasets(): Promise<Dataset[]> {
+  if (cached_datasets == null) {
+    //find every meta.json below database_root. So **/meta.json
+    let out: Dataset[] = [];
+    console.log(globSync);
+    var meta_jsons = globSync("**/meta.json", { cwd: database_root });
+    console.log(meta_jsons);
+    for (var idx in meta_jsons) {
+      let filename = meta_jsons[idx];
+      var info = JSON.parse(
+        await fs.promises.readFile(database_root + filename),
+      );
+      out.push({
+        name: filename.replace("/meta.json", ""),
+        description: info["description"],
+      });
+    }
+    cached_datasets = out;
+  }
+  console.log(cached_datasets);
+  return cached_datasets;
+}
+
+function normalize_dataset(dataset: string): string {
+  if (!dataset.endsWith("/")) {
+    dataset = dataset + "/";
+  }
+  if (dataset.includes("/..")) {
+    throw new Error("Invalid dataset name");
+  }
+  return dataset;
+}
+
+export async function get_meta(dataset: string): Promise<Meta> {
+  dataset = normalize_dataset(dataset);
   let meta_filename = database_root + dataset + "meta.json";
   let meta = JSON.parse(await fs.promises.readFile(meta_filename));
+  meta.value_columns = Object.entries(meta["columns"])
+    .filter(([_, value]) => value[0] == "value")
+    .map(([key, _]) => key);
+
+  meta.condition_columns = Object.entries(meta["columns"])
+    .filter(([_, value]) => value[0] == "condition")
+    .map(([key, _]) => key);
+
   return meta;
 }
 
 function get_index_columns(meta: Meta): string[] {
-var index_columns: Array<[number, string]> = [];
+  var index_columns: Array<[number, string]> = [];
   for (var column_name in meta["columns"]) {
     var v = meta["columns"][column_name];
     if (v[0] == "index") {
@@ -29,15 +78,14 @@ var index_columns: Array<[number, string]> = [];
   index_columns.sort();
   var out: string[] = index_columns.map((kv) => kv[1]);
   return out;
-
 }
 
 function or_filters(pl_filters: pl.Expr[]) {
-	var res = pl_filters[0];
-	for (var ii = 1; ii < pl_filters.length; ii++) {
-		res = res.or(pl_filters[ii]);
-	}
-	return res;
+  var res = pl_filters[0];
+  for (var ii = 1; ii < pl_filters.length; ii++) {
+    res = res.or(pl_filters[ii]);
+  }
+  return res;
 }
 
 export async function search_identifiers(
@@ -50,14 +98,17 @@ export async function search_identifiers(
   let df = pl.scanParquet(database_root + dataset + "df.parquet");
   let col = df.select(index_columns);
   let uq = col.unique();
-  var q: string|RegExp;
+  var q: string | RegExp;
   if (prefix) {
     q = new RegExp("^" + query);
   } else {
     q = query;
   }
-  var filter = or_filters(index_columns.map((column) => 
-	  pl.col(column).cast(pl.Utf8).str.toLowerCase().str.contains(q)));
+  var filter = or_filters(
+    index_columns.map((column) =>
+      pl.col(column).cast(pl.Utf8).str.toLowerCase().str.contains(q)
+    ),
+  );
   let filtered = uq.filter(
     filter,
   );
@@ -72,37 +123,31 @@ export async function search_identifiers(
   return out;
 }
 
-export async function get_row(row_identifier: string, dataset: string): object[] {
-	let meta = await get_meta(dataset);
-    var index_columns = get_index_columns(meta);
-	var filters = row_identifier.split(index_separator);
-	if (index_columns.length == 0) {
-		throw new Error("No index columns?");
-	}
-	if (index_columns.length != filters.length) {
-		throw new Error("Invalid row identifier");
-	}
-	var pl_filter: Array<pl.Expr> = [];
-	for (var ii = 0; ii < index_columns.length; ii++) {
-		console.log(index_columns[ii], filters[ii]);
-		pl_filter.push(
-		pl.col(index_columns[ii]).cast(pl.Utf8).eq(pl.lit(filters[ii])));
-	}
-	var combined_filter = or_filters(pl_filter);
-	let df = pl.scanParquet(database_root + dataset + "df.parquet");
-	console.log(pl_filter);
-	console.log(combined_filter);
-	let filtered = df.filter(combined_filter);
-	let casted = filtered.select(pl.col(pl.Categorical).cast(pl.Utf8));
-	let values = await casted.collect();
-	console.log(values);
-	let out = [];
-	let rows = values.rows();
-	for (var row of rows) {
-		out.push(row);
-	}
-	return out;
-
-
-
+export async function get_row(
+  row_identifier: string,
+  dataset: string,
+): object[] {
+  let meta = await get_meta(dataset);
+  var index_columns = get_index_columns(meta);
+  var filters = row_identifier.split(index_separator);
+  if (index_columns.length == 0) {
+    throw new Error("No index columns?");
+  }
+  if (index_columns.length != filters.length) {
+    throw new Error("Invalid row identifier");
+  }
+  var pl_filter: Array<pl.Expr> = [];
+  for (var ii = 0; ii < index_columns.length; ii++) {
+    console.log(index_columns[ii], filters[ii]);
+    pl_filter.push(
+      pl.col(index_columns[ii]).cast(pl.Utf8).eq(pl.lit(filters[ii])),
+    );
+  }
+  var combined_filter = or_filters(pl_filter);
+  let df = pl.scanParquet(database_root + dataset + "df.parquet");
+  let filtered = df.filter(combined_filter);
+  //let casted = filtered.select(pl.col(pl.Categorical).cast(pl.Utf8));
+  //let values = await casted.collect();
+  let values = await filtered.collect();
+  return values;
 }
