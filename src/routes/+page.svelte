@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { browser } from "$app/environment";
+  import Tree from "$lib/components/Tree.svelte";
 
   import Toggler from "$lib/components/Toggler.svelte";
 
@@ -9,12 +10,35 @@
 
   export let data;
 
+  let paths = ["A/b/c", "A/b/d", "E/f/g"];
+
+  // Function to convert paths into a tree structure
+  function buildTree(paths) {
+    const root = {};
+    paths.forEach((path) => {
+      let node = root;
+      path.split("/").forEach((part) => {
+        node[part] = node[part] || {};
+        node = node[part];
+      });
+    });
+    return root;
+  }
+
+
+  // Building the tree from paths
+  let tree = buildTree(data.datasets.map((x) => x.name));
+  console.log(tree);
 </script>
 
 <h2>Dataset selector</h2>
 
 <ul>
-	{#each data.datasets as dataset}
-		<li><a href="jitter?dataset={dataset.name}">{dataset.name}</a></li>
-	{/each}
+  {#each data.datasets as dataset}
+    <li><a href="jitter?dataset={dataset.name}">{dataset.name}</a></li>
+  {/each}
 </ul>
+
+<Tree node={tree} />
+
+
