@@ -2,8 +2,11 @@ import fs from "fs";
 import path from "path";
 import pl from "nodejs-polars";
 import { globSync } from "glob";
+import process from "process";
 
-let database_root = path.resolve("database/1/") + "/";
+let DATABASE_DIR = process.env["DATABASE_DIR"];
+
+let database_root = path.resolve(DATABASE_DIR) + "/1/";
 const index_separator = " / ";
 
 interface Column {
@@ -66,17 +69,23 @@ export async function get_meta(dataset: string): Promise<Meta> {
   meta.value_columns = Object.entries(meta["columns"])
     .filter(([_, value]) => value["kind"] == "value")
     //sort by order
-    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
+    .sort(([_, a], [__, b]) =>
+      Number(a["order"] ?? 0) - Number(b["order"] ?? 0)
+    )
     .map(([key, _]) => key);
 
   meta.condition_columns = Object.entries(meta["columns"])
     .filter(([_, value]) => value["kind"] == "condition")
-    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
+    .sort(([_, a], [__, b]) =>
+      Number(a["order"] ?? 0) - Number(b["order"] ?? 0)
+    )
     .map(([key, _]) => key);
 
   meta.index_columns = Object.entries(meta["columns"])
     .filter(([_, value]) => value["kind"] == "index")
-    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
+    .sort(([_, a], [__, b]) =>
+      Number(a["order"] ?? 0) - Number(b["order"] ?? 0)
+    )
     .map(([key, _]) => key);
 
   return meta;
@@ -100,17 +109,27 @@ export async function search_identifiers(
   let df = pl.scanParquet(database_root + dataset + "df.parquet");
   let col = df.select(index_columns);
   let uq = col.unique();
-  var q: string | RegExp;
-  if (prefix) {
-    q = new RegExp("^" + query);
-  } else {
-    q = query;
+  var qs: (string | RegExp)[] = new Array();
+  let split_queries = query.split(" ");
+  for (var idx in split_queries) {
+    var qt = split_queries[idx].trim();
+    if (qt.length != 0) {
+      if (prefix) {
+        qs.push(new RegExp("^" + qt));
+      } else {
+        qs.push(qt);
+      }
+    }
   }
-  var filter = or_filters(
-    index_columns.map((column) =>
-      pl.col(column).cast(pl.Utf8).str.toLowerCase().str.contains(q)
-    ),
-  );
+  var filters: pl.Expr[] = [];
+  for (var q of qs) {
+    for (var column of index_columns) {
+      filters.push(
+        pl.col(column).cast(pl.Utf8).str.toLowerCase().str.contains(q),
+      );
+    }
+  }
+  var filter = or_filters(filters);
   let filtered = uq.filter(
     filter,
   );
