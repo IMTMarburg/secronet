@@ -6,6 +6,7 @@
   export let dataset;
   export let column;
   export let prefix = false;
+  export let autofocus=null;
 
   async function getItems(searchTerm) {
     const url =
@@ -30,6 +31,9 @@
   delay="200"
   bind:selectedItem={selected}
   localFiltering="{false}"
+  autofocus="{autofocus}"
+
+  inputClassName="dsa-input"
 />
 
 

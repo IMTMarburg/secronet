@@ -13,43 +13,95 @@
   let value_columns = meta.value_columns;
   let condition_columns = meta.condition_columns;
 
-  let selected = "";
+  console.log(meta);
+  let selected = meta['defaultIdentifer']; //"Agt / ENSMUSG00000031980 / ANGT_MOUSE-0";
   let value_column = value_columns[0];
 
   let bokeh_target;
-  /*
+
+  $: (selected ?? "") != "" ? bk(selected, value_column) : null;
+
   function get_column_values(data, column_name) {
     let cols = data["columns"];
     let col = cols.find((col) => col["name"] == column_name);
     return col["values"];
   }
 
-  async function bk(data) {
-  return;
-    console.log("bk", data["meta"]["columns"]);
+  async function bk(identifier, value_column) {
+    if (!browser) {
+      return;
+    }
+    var data = await fetch(
+      base +
+        "/row?" +
+        new URLSearchParams({
+          dataset: dataset,
+          identifier: identifier,
+        })
+    );
+    data = await data.json();
+    meta = data["meta"];
+    var df = JSON.parse(data["data"]);
 
-    var value_column = Object.entries(data["meta"]["columns"]).find(
-      ([_, value]) => value[0] == "value"
-    )[0];
-    var index_columns = Object.entries(data["meta"]["columns"])
-      .filter(([_, value]) => value[0] == "index")
-      .map(([key, _]) => key);
-    var sample_columns = Object.entries(data["meta"]["columns"])
-      .filter(([_, value]) => value[0] == "sample")
-      .map(([key, _]) => key);
-
-    let df = JSON.parse(data["data"]);
-	console.log(df);
     let bokeh_input = Object.fromEntries(
       Object.entries(data["meta"]["columns"]).map(([key, value]) => [
         key,
         get_column_values(df, key),
       ])
     );
-	console.log('input', bokeh_input);
 
+    document.getElementById("debug").innerHTML =
+      "<pre>" + JSON.stringify(bokeh_input, null, 2) + "</pre>";
     let Bokeh = window.Bokeh;
 
+    let x_columns = condition_columns.filter(
+      (col) => meta["columns"][col]["xaxis"] == "axis"
+    );
+	if (bokeh_input[x_columns[0]].length == 0) {
+		bokeh_target.innerHTML = "No data found for this identifier";
+		return;
+	}
+    const categories = bokeh_input[x_columns[0]];
+    let unique_condition_values = [...new Set(categories)];
+
+    let y_column = value_column;
+    var yrange_naive = [
+      Math.min(...bokeh_input[y_column]),
+      Math.max(...bokeh_input[y_column]),
+    ];
+    if (y_column == "log2fc") {
+      yrange_naive[0] = Math.min(yrange_naive[0], -1);
+    }
+    let ydist = yrange_naive[1] - yrange_naive[0];
+    let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
+
+    document.getElementById("debug").innerHTML +=
+      "<pre>" + JSON.stringify(categories, null, 2) + "</pre>";
+    const p = Bokeh.Plotting.figure({
+      width: 400,
+      height: 400,
+      title: "Jitter Plot - " + identifier,
+      y_axis_label: value_column,
+      x_axis_label: condition_columns.join(" / "),
+      x_range: unique_condition_values,
+      y_range: yrange,
+    });
+    const source = new Bokeh.ColumnDataSource({ data: bokeh_input });
+    let Jitter = Bokeh.Models._known_models.get("Jitter");
+    let jitter = new Jitter({ width: 0.4, range: p.x_range });
+    const glyph = new Bokeh.Scatter({
+      x: { field: x_columns[0], transform: jitter },
+      y: { field: value_column },
+      line_color: "#66FF99",
+      line_width: 0,
+      size: 10,
+    });
+    p.add_glyph(glyph, source);
+
+    bokeh_target.innerHTML = "";
+    Bokeh.Plotting.show(p, bokeh_target);
+  }
+  /*
   const categories = bokeh_input[condition_columns[0]];
   let unique_condition_values = [...new Set(categories)];
     const values = bokeh_input[value_column];
@@ -58,8 +110,6 @@
     const jittered_values = values.map(val => val);
 
 	let yrange_naive = [Math.min(...bokeh_input[value_column]), Math.max(...bokeh_input[value_column])];
-	let ydist = yrange_naive[1] - yrange_naive[0];
-	let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
 
 	const p = Bokeh.Plotting.figure({ width: 400, height: 400, title: 'Jitter Plot' ,
 	x_range: unique_condition_values,
@@ -71,7 +121,7 @@
 	let Jitter = Bokeh.Models._known_models.get("Jitter")
 	let jitter = new Jitter({width: .4, range:p.x_range});
 	const line = new Bokeh.Scatter({
-      x: { field: condition_columns[0], transform: jitter},
+      x: { field: x_columns[0], transform: jitter},
       y: { field: value_column},
       line_color: "#66FF99",
       line_width: 2,
@@ -98,18 +148,18 @@
 
 <label for="value_columns">Value column to show:</label>
 {#if value_columns.length > 1}
-	<select id="value_columns" bind:value={value_column}>
-	  {#each value_columns as value}
-		<option {value}>{value}</option>
-	  {/each}
-	</select>
+  <select id="value_columns" bind:value={value_column}>
+    {#each value_columns as value}
+      <option {value}>{value}</option>
+    {/each}
+  </select>
 {:else}
-	<input type="hidden" id="value_columns" bind:value={value_column} />
-	{value_column}
+  <input type="hidden" id="value_columns" bind:value={value_column} />
+  {value_column}
 {/if}
 
 <br />
-{#each condition_columns as cc}
+<!-- {#each condition_columns as cc}
   <label>Condition column: {cc}</label>
   <select data-cc={cc}>
     <option value="color">As color</option>
@@ -118,17 +168,34 @@
   </select>
 {/each}
 <br />
-
+ -->
 <label for="selected">Entry of interest:</label>
 <DatasetAutoComplete
-id="selected"
-  dataset="secretome/olink/TCell_Anna_Steitz/"
+  {dataset}
   column="Assay"
   bind:selected
   prefix="false"
+  autofocus="true"
 />
+<br />
+You chave chosen:
 {selected}
 
 <div style="border: 1px solid black" />
 
 <div bind:this={bokeh_target} />
+
+<div id="debug" />
+
+<pre>
+{JSON.stringify(meta, null, 2)}
+</pre>
+
+<style>
+pre {
+color: blue;
+}
+:global(.dsa-input) {
+width:30em !important;
+}
+</style>

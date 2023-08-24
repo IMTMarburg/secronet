@@ -6,10 +6,19 @@ import { globSync } from "glob";
 let database_root = path.resolve("database/1/") + "/";
 const index_separator = " / ";
 
+interface Column {
+  kind: String;
+  description: String;
+  order: Number | undefined;
+}
+
 interface Meta {
   columns: {
-    [key: string]: [string, string, number]; // This indicates that 'columns' is an object with string keys and values of any type.
+    [key: string]: Column;
   };
+  value_columns: string[];
+  condition_columns: string[];
+  index_columns: string[];
 }
 
 interface Dataset {
@@ -17,18 +26,16 @@ interface Dataset {
   description: string;
 }
 
-var cached_datasets = null;
+var cached_datasets: Dataset[] | null = null;
 export async function list_datasets(): Promise<Dataset[]> {
   if (cached_datasets == null) {
     //find every meta.json below database_root. So **/meta.json
     let out: Dataset[] = [];
-    console.log(globSync);
     var meta_jsons = globSync("**/meta.json", { cwd: database_root });
-    console.log(meta_jsons);
     for (var idx in meta_jsons) {
       let filename = meta_jsons[idx];
       var info = JSON.parse(
-        await fs.promises.readFile(database_root + filename),
+        (await fs.promises.readFile(database_root + filename)).toString(),
       );
       out.push({
         name: filename.replace("/meta.json", ""),
@@ -37,7 +44,6 @@ export async function list_datasets(): Promise<Dataset[]> {
     }
     cached_datasets = out;
   }
-  console.log(cached_datasets);
   return cached_datasets;
 }
 
@@ -54,30 +60,26 @@ function normalize_dataset(dataset: string): string {
 export async function get_meta(dataset: string): Promise<Meta> {
   dataset = normalize_dataset(dataset);
   let meta_filename = database_root + dataset + "meta.json";
-  let meta = JSON.parse(await fs.promises.readFile(meta_filename));
+  let meta: Meta = JSON.parse(
+    (await fs.promises.readFile(meta_filename)).toString(),
+  );
   meta.value_columns = Object.entries(meta["columns"])
-    .filter(([_, value]) => value[0] == "value")
+    .filter(([_, value]) => value["kind"] == "value")
+    //sort by order
+    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
     .map(([key, _]) => key);
 
   meta.condition_columns = Object.entries(meta["columns"])
-    .filter(([_, value]) => value[0] == "condition")
+    .filter(([_, value]) => value["kind"] == "condition")
+    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
+    .map(([key, _]) => key);
+
+  meta.index_columns = Object.entries(meta["columns"])
+    .filter(([_, value]) => value["kind"] == "index")
+    .sort(([_, a], [__, b]) => Number(a["order"] ?? 0) - Number(b["order"] ?? 0))
     .map(([key, _]) => key);
 
   return meta;
-}
-
-function get_index_columns(meta: Meta): string[] {
-  var index_columns: Array<[number, string]> = [];
-  for (var column_name in meta["columns"]) {
-    var v = meta["columns"][column_name];
-    if (v[0] == "index") {
-      var pos = v[2] ?? 999;
-      index_columns.push([pos, column_name]);
-    }
-  }
-  index_columns.sort();
-  var out: string[] = index_columns.map((kv) => kv[1]);
-  return out;
 }
 
 function or_filters(pl_filters: pl.Expr[]) {
@@ -94,7 +96,7 @@ export async function search_identifiers(
   prefix: boolean,
 ): Promise<string[]> {
   let meta = await get_meta(dataset);
-  var index_columns = get_index_columns(meta);
+  var index_columns = meta.index_columns;
   let df = pl.scanParquet(database_root + dataset + "df.parquet");
   let col = df.select(index_columns);
   let uq = col.unique();
@@ -126,9 +128,9 @@ export async function search_identifiers(
 export async function get_row(
   row_identifier: string,
   dataset: string,
-): object[] {
+): Promise<pl.DataFrame> {
   let meta = await get_meta(dataset);
-  var index_columns = get_index_columns(meta);
+  var index_columns = meta.index_columns;
   var filters = row_identifier.split(index_separator);
   if (index_columns.length == 0) {
     throw new Error("No index columns?");
@@ -138,7 +140,6 @@ export async function get_row(
   }
   var pl_filter: Array<pl.Expr> = [];
   for (var ii = 0; ii < index_columns.length; ii++) {
-    console.log(index_columns[ii], filters[ii]);
     pl_filter.push(
       pl.col(index_columns[ii]).cast(pl.Utf8).eq(pl.lit(filters[ii])),
     );
