@@ -73,7 +73,10 @@
     let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
 
     let SaveTool = Bokeh.Models._known_models.get("SaveTool");
-    console.log(SaveTool);
+	let custom_tooltips = [];
+	for (var c in meta["columns"]) {
+		custom_tooltips.push([c, "@" + c]);
+	}
     const tools = [
       "pan",
       "crosshair",
@@ -83,10 +86,13 @@
       new SaveTool({
         filename: dataset.replace("/", "_") + "_" + identifier.replace("/", ""),
       }),
+	  new Bokeh.HoverTool({tooltips: custom_tooltips })
     ];
+
+
     const p = Bokeh.Plotting.figure({
-      width: 400,
-      height: 400,
+      //width: 400,
+      //height: 400,
       title: "Jitter Plot - " + identifier,
       tools: tools,
       y_axis_label: value_column,
