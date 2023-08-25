@@ -3,4 +3,4 @@ mkdir -p data/events
 mkdir -p data/tasks
 mkdir -p data/downloads
 yarn
-REMOTE_USER=flo DATABASE_DIR=../secronet_database/ yarn dev
+REMOTE_USER=flo DATABASE_DIR=database yarn dev

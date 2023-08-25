@@ -110,10 +110,11 @@ export async function search_identifiers(
   let col = df.select(index_columns);
   let uq = col.unique();
   var qs: (string | RegExp)[] = new Array();
+  console.log("query", query);
   let split_queries = query.split(" ");
   for (var idx in split_queries) {
     var qt = split_queries[idx].trim();
-    if (qt.length != 0) {
+    if (qt.length > 0) {
       if (prefix) {
         qs.push(new RegExp("^" + qt));
       } else {

@@ -13,12 +13,31 @@
   let value_columns = meta.value_columns;
   let condition_columns = meta.condition_columns;
 
-  let selected = meta["defaultIdentifer"]; //"Agt / ENSMUSG00000031980 / ANGT_MOUSE-0";
+  let selected = null; //"Agt / ENSMUSG00000031980 / ANGT_MOUSE-0";
   let value_column = value_columns[0];
 
   let bokeh_target;
 
   $: (selected ?? "") != "" ? bk(selected, value_column) : null;
+
+  function formatHashParameters(identifier, value_column) {
+    let params = new URLSearchParams();
+    params.set("identifier", identifier);
+    params.set("value_column", value_column);
+	return params;
+  }
+
+  function setHashParameters(identifier, value_column) {
+    let params = formatHashParameters(identifier, value_column);
+    window.location.hash = params.toString();
+  }
+  function getHashParameters() {
+    return new URLSearchParams(window.location.hash.substring(1));
+  }
+
+  $: if (selected !== null) {
+    setHashParameters(selected, value_column);
+  }
 
   function get_column_values(data, column_name) {
     let cols = data["columns"];
@@ -30,6 +49,7 @@
     if (!browser) {
       return;
     }
+    console.log(identifier);
     var data = await fetch(
       base +
         "/row?" +
@@ -38,6 +58,8 @@
           identifier: identifier,
         })
     );
+    //set anchor to identifier
+    window.location.hash = identifier;
     data = await data.json();
     meta = data["meta"];
     var df = JSON.parse(data["data"]);
@@ -73,10 +95,10 @@
     let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
 
     let SaveTool = Bokeh.Models._known_models.get("SaveTool");
-	let custom_tooltips = [];
-	for (var c in meta["columns"]) {
-		custom_tooltips.push([c, "@" + c]);
-	}
+    let custom_tooltips = [];
+    for (var c in meta["columns"]) {
+      custom_tooltips.push([c, "@" + c]);
+    }
     const tools = [
       "pan",
       "crosshair",
@@ -86,9 +108,14 @@
       new SaveTool({
         filename: dataset.replace("/", "_") + "_" + identifier.replace("/", ""),
       }),
-	  new Bokeh.HoverTool({tooltips: custom_tooltips })
+      new Bokeh.HoverTool({ tooltips: custom_tooltips }),
     ];
 
+    var y_axis_type = "auto";
+    if (meta["columns"][value_column]["log"] ?? false) {
+      y_axis_type = "log";
+      yrange = null;
+    }
 
     const p = Bokeh.Plotting.figure({
       //width: 400,
@@ -99,6 +126,7 @@
       x_axis_label: condition_columns.join(" / "),
       x_range: unique_condition_values,
       y_range: yrange,
+      y_axis_type: y_axis_type,
     });
     const source = new Bokeh.ColumnDataSource({ data: bokeh_input });
     let Jitter = Bokeh.Models._known_models.get("Jitter");
@@ -108,31 +136,68 @@
       y: { field: value_column },
       line_color: "#66FF99",
       line_width: 0,
-      size: 10,
+      size: 20,
     });
     p.add_glyph(glyph, source);
+    if (value_column == "FDR") {
+      //add a horizontal line at 0.05
+      p.add_layout(
+        new Bokeh.Span({
+          location: 0.05,
+          dimension: "width",
+          line_color: "red",
+          line_dash: "dashed",
+        })
+      );
+      p.add_layout(
+        new Bokeh.Span({
+          location: 0.001,
+          dimension: "width",
+          line_color: "blue",
+          line_dash: "dashed",
+        })
+      );
+    }
 
     bokeh_target.innerHTML = "";
     Bokeh.Plotting.show(p, bokeh_target);
   }
+
+  onMount(() => {
+    let params = getHashParameters();
+    let from_url = params.get("identifier", null) ?? meta["defaultIdentifier"];
+    let vc = params.get("value_column") ?? value_column;
+    if (from_url == "" || from_url == undefined) {
+      from_url = meta["defaultIdentifer"];
+    }
+    selected = from_url;
+    value_column = vc;
+  });
 </script>
 
-<h2>{dataset}</h2>
+<svelte:head>
+  <title>Secronet - {dataset} - jitter</title>
+</svelte:head>
 
-<label for="value_columns">Value column to show:</label>
-{#if value_columns.length > 1}
-  <select id="value_columns" bind:value={value_column}>
-    {#each value_columns as value}
-      <option {value}>{value}</option>
-    {/each}
-  </select>
-{:else}
-  <input type="hidden" id="value_columns" bind:value={value_column} />
-  {value_column}
-{/if}
+<p class="title">{dataset}</p>
+<hr />
 
-<br />
-<!-- {#each condition_columns as cc}
+<div class="form-container">
+  <div class="form-row">
+    <label for="value_columns">Value column to show:</label>
+    {#if value_columns.length > 1}
+      <select id="value_columns" bind:value={value_column}>
+        {#each value_columns as value}
+          <option {value}>{value}</option>
+        {/each}
+      </select>
+    {:else}
+      <input type="hidden" id="value_columns" bind:value={value_column} />
+      {value_column}
+    {/if}
+  </div>
+  <div class="form-row">
+    <!-- {#each condition_columns as cc}
   <label>Condition column: {cc}</label>
   <select data-cc={cc}>
     <option value="color">As color</option>
@@ -142,19 +207,24 @@
 {/each}
 <br />
  -->
-<label for="selected">Entry of interest:</label>
-<DatasetAutoComplete
-  {dataset}
-  column="Assay"
-  bind:selected
-  prefix="false"
-  autofocus="true"
-/>
-<br />
-You chave chosen:
-{selected}
+    <label for="selected">Entry of interest:</label>
+    <DatasetAutoComplete
+      {dataset}
+      column="Assay"
+      bind:selected
+      prefix="false"
+      autofocus="true"
+    />
+  </div>
+</div>
 
-<div style="border: 1px solid black" />
+<hr />
+{#if selected === null}
+  Loading...
+{:else}
+  You chave chosen:
+  <a href="#{formatHashParameters(selected, value_column)}">{selected}</a>
+{/if}
 
 <div bind:this={bokeh_target} />
 

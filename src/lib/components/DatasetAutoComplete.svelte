@@ -32,6 +32,7 @@
   bind:selectedItem={selected}
   localFiltering="{false}"
   autofocus="{autofocus}"
+  cleanUserText="{false}"
 
   inputClassName="dsa-input"
 />
