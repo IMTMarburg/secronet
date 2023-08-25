@@ -31,6 +31,7 @@
 		"prettier": "^2.8.7",
 		"simple-svelte-autocomplete": "^2.5.2",
 		"svelte-paginate": "^0.1.0",
+		"svelte-tree": "^0.7.0",
 		"toml": "^3.0.0"
 	}
 }

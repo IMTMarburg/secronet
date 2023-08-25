@@ -10,35 +10,40 @@
 
   export let data;
 
-  let paths = ["A/b/c", "A/b/d", "E/f/g"];
+  import Tree from "svelte-tree";
+  function addPath(tree, path) {
+    let currentLevel = tree;
+    path.split("/").forEach((part, index, array) => {
+      let existingPath = currentLevel.find((child) => child.name === part);
+      if (!existingPath) {
+        existingPath = { name: part, children: [], path: path };
+        currentLevel.push(existingPath);
+      }
 
-  // Function to convert paths into a tree structure
-  function buildTree(paths) {
-    const root = {};
-    paths.forEach((path) => {
-      let node = root;
-      path.split("/").forEach((part) => {
-        node[part] = node[part] || {};
-        node = node[part];
-      });
+      if (index === array.length - 1) {
+        existingPath.leaf = true;
+      } else {
+        currentLevel = existingPath.children;
+      }
     });
-    return root;
   }
 
-
-  // Building the tree from paths
-  let tree = buildTree(data.datasets.map((x) => x.name));
-  console.log(tree);
+  function pathsToTree(paths) {
+    const tree = [];
+    paths.forEach((path) => addPath(tree, path));
+    return tree;
+  }
+  let tree = pathsToTree(data.datasets.map((x) => x.name));
 </script>
 
 <h2>Dataset selector</h2>
 
-<ul>
-  {#each data.datasets as dataset}
-    <li><a href="jitter?dataset={dataset.name}">{dataset.name}</a></li>
-  {/each}
-</ul>
-
-<Tree node={tree} />
-
-
+<Tree {tree} let:node>
+  <div class="name">
+    {#if node.leaf}
+      <a href="jitter?dataset={node.path}">{node.name}</a>
+    {:else}
+      {@html node.name}
+    {/if}
+  </div>
+</Tree>

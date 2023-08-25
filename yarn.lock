@@ -1194,6 +1194,11 @@ svelte-preprocess@^5.0.0:
     sorcery "^0.11.0"
     strip-indent "^3.0.0"
 
+svelte-tree@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/svelte-tree/-/svelte-tree-0.7.0.tgz#3cff496ddc317d525faf101cf2ff9ec4dcfda399"
+  integrity sha512-22YEdqHvqQ+2OJzFqBznn6QgvoT0DGQPU04Wij5PilWDs4bPpQTbKSaSCWVBwdeNxnfk8ZB7H9J/2s2TNCv+lw==
+
 svelte@^3.54.0:
   version "3.58.0"
   resolved "https://registry.npmjs.org/svelte/-/svelte-3.58.0.tgz"
