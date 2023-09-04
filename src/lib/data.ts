@@ -4,7 +4,7 @@ import pl from "nodejs-polars";
 import { globSync } from "glob";
 import process from "process";
 
-let DATABASE_DIR = process.env["DATABASE_DIR"];
+let DATABASE_DIR = process.env["DATABASE_DIR"] ?? "database";
 
 let database_root = path.resolve(DATABASE_DIR) + "/1/";
 const index_separator = " / ";
