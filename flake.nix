@@ -36,7 +36,7 @@
 
           default = pkgs.writeShellApplication {
             name = packageJSON.name;
-            runtimeInputs = [site-src pkgs.nodejs pkgs.rage];
+            runtimeInputs = [site-src pkgs.nodejs];
             text = ''
               node ${site-src}/libexec/${packageJSON.name}/deps/${packageJSON.name}/build
             '';
