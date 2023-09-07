@@ -14,5 +14,5 @@ if (import.meta.hot) {
 
 <svelte:head>
 </svelte:head>
-<a href="{base}/"><img src="logo.svg" alt="Secronet logo" /></a>
+<a href="{base}/"><img src="{base}/logo.svg" alt="Secronet logo" /></a>
 <slot />
