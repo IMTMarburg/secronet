@@ -1,6 +1,5 @@
 import { json } from "@sveltejs/kit";
 import { get_meta, get_row } from "$lib/data";
-import pl from "nodejs-polars";
 
 export async function GET({ url }: LoadInput) {
   var dataset = url.searchParams.get("dataset");

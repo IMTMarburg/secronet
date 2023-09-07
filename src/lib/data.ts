@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
-import pl from "nodejs-polars";
+import {pl} from "nodejs-polars";
 import process from "process";
 import { globSync } from "glob";
 
-let DATABASE_DIR = process.env["DATABASE_DIR"];
-let project_root = process.cwd();
+
+let DATABASE_DIR = process.env["DATABASE_DIR"] ?? "database";
 
 let database_root = path.resolve(path.join(project_root, DATABASE_DIR, "1")) +
   "/";
@@ -112,7 +112,6 @@ export async function search_identifiers(
   let col = df.select(index_columns);
   let uq = col.unique();
   var qs: (string | RegExp)[] = new Array();
-  console.log("query", query);
   let split_queries = query.split(" ");
   for (var idx in split_queries) {
     var qt = split_queries[idx].trim();

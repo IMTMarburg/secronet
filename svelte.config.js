@@ -7,10 +7,10 @@ const config = {
   kit: {
     adapter: adapter(),
     paths: {
-      //base: "/",
+      base: "/secronet",
     },
   },
-    //baseUrl: "/",
+    baseUrl: "/secronet",
 };
 
 export default config;
