@@ -6,6 +6,7 @@ import { globSync } from "glob";
 
 
 let DATABASE_DIR = process.env["DATABASE_DIR"] ?? "database";
+let project_root = process.cwd();
 
 let database_root = path.resolve(path.join(project_root, DATABASE_DIR, "1")) +
   "/";

@@ -1,15 +1,20 @@
 <script lang="ts">
+	import { clickoutside } from '@svelte-put/clickoutside';
+
   export let expanded = false;
   export let klass;
-  let show_long = expanded == "true";
 
   function toggleDisplay() {
-    show_long = !show_long;
+      expanded = !expanded;
+  }
+
+  function hide() {
+	  expanded = false;
   }
 </script>
 
-<div class={klass}>
-  {#if show_long}
+<div class={klass} use:clickoutside on:clickoutside={hide}>
+  {#if expanded}
     <a href="" on:click|preventDefault={toggleDisplay}><slot name="text" /></a>
     <slot />
   {:else}
