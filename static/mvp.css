@@ -568,8 +568,13 @@ p.error {
   font-weight:bold;
   display: inline;
   font-size:2em;
-  padding-left:1em;
-  vertical-align: top;
+  padding-left:.4em;
+  margin-top:0;
+  padding-top:0;
+  padding-bottom:0;
+  margin-bottom:0;
+  margin-left:0;
+  vertical-align: bottom;
   white-space:nowrap;
 }
 

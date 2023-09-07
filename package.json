@@ -27,11 +27,14 @@
 		"email-validator": "^2.0.4",
 		"glob": "^10.3.3",
 		"handlebars": "^4.7.7",
+		"natsort": "^2.0.3",
 		"nodejs-polars": "^0.8.1",
 		"prettier": "^2.8.7",
+		"remark": "^14.0.3",
+		"remark-gfm": "^3.0.1",
+		"remark-html": "^15.0.2",
 		"simple-svelte-autocomplete": "^2.5.2",
 		"svelte-paginate": "^0.1.0",
-		"svelte-tree": "^0.7.0",
 		"toml": "^3.0.0"
 	}
 }

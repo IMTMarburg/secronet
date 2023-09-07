@@ -5,44 +5,41 @@
   import Toggler from "$lib/components/Toggler.svelte";
 
   import DatasetAutoComplete from "$lib/components/DatasetAutoComplete.svelte";
+  import Picker from "$lib/components/Picker.svelte";
   import { base } from "$app/paths";
 
   export let data;
 
-  import Tree from "svelte-tree";
-  function addPath(tree, path) {
-    let currentLevel = tree;
-    path.split("/").forEach((part, index, array) => {
-      let existingPath = currentLevel.find((child) => child.name === part);
-      if (!existingPath) {
-        existingPath = { name: part, children: [], path: path };
-        currentLevel.push(existingPath);
+  function get_tag_values() {
+    let res = {};
+    for (let tag of data.meta_tags) {
+      if (!res[tag.tag]) {
+        res[tag.tag] = [];
       }
-
-      if (index === array.length - 1) {
-        existingPath.leaf = true;
-      } else {
-        currentLevel = existingPath.children;
+      if (!res[tag.tag].includes(tag.value)) {
+        res[tag.tag].push(tag.value);
       }
-    });
+    }
+    return res;
   }
-
-  function pathsToTree(paths) {
-    const tree = [];
-    paths.forEach((path) => addPath(tree, path));
-    return tree;
-  }
-  let tree = pathsToTree(data.datasets.map((x) => x.name));
 </script>
 
-<h2>Dataset selector</h2>
+<svelte:head>
+  <title>Secronet - a GRK 2573/1 website</title>
+</svelte:head>
+<p class="title">a GRK 2573/1 website</p>
 
-<Tree {tree} let:node>
-  <div class="name">
-    {#if node.leaf}
-      <a href="jitter?dataset={node.path}">{node.name}</a>
-    {:else}
-      {@html node.name}
-    {/if}
-  </div>
-</Tree>
+<h2>Dataset selector</h2>
+<h3>Filter</h3>
+{#each Object.entries(get_tag_values()) as values, tag}
+  <Picker items={values[1]} name={values[0]} />
+  <br />
+{/each}
+
+{#each data.datasets as dataset}
+  <b>{dataset.name}</b>:
+  <a href="info/{dataset.name.replaceAll('/', ':::')}">Description</a>
+  /
+  <a href="jitter/{dataset.name.replaceAll('/', ':::')}">Jitter</a>
+  <br />
+{/each}

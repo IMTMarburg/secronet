@@ -1,12 +1,14 @@
 import fs from "fs";
 import path from "path";
 import pl from "nodejs-polars";
-import { globSync } from "glob";
 import process from "process";
+import { globSync } from "glob";
 
 let DATABASE_DIR = process.env["DATABASE_DIR"];
+let project_root = process.cwd();
 
-let database_root = path.resolve(DATABASE_DIR) + "/1/";
+let database_root = path.resolve(path.join(project_root, DATABASE_DIR, "1")) +
+  "/";
 const index_separator = " / ";
 
 interface Column {
@@ -171,4 +173,27 @@ export async function get_row(
   //let values = await casted.collect();
   let values = await filtered.collect();
   return values;
+}
+
+interface TVD {
+  tag: String;
+  value: String;
+  dataset: String;
+}
+
+export async function get_meta_tags(): Promise<TVD[]> {
+  //for all datasets,
+  //go through their meta tags, and
+  //return a list of {tag, value, dataset}
+  let result: TVD[] = [];
+  let datasets = await list_datasets();
+  for (var dataset of datasets) {
+    let meta = await get_meta(dataset.name);
+    for (var tag of Object.keys(meta.tags)) {
+      let value = meta.tags[tag];
+      result.push({ tag: tag, value: value, dataset: dataset.name });
+    }
+  }
+
+  return result;
 }

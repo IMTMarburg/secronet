@@ -2,6 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { browser } from "$app/environment";
 
+  import Toggler from "$lib/components/Toggler.svelte";
 
   import DatasetAutoComplete from "$lib/components/DatasetAutoComplete.svelte";
   import { base } from "$app/paths";
