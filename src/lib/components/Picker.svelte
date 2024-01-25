@@ -22,14 +22,12 @@
 
 
 <Toggler
-text="<p>{name}</p>"
-	cls="picker"
 	klass="picker_div"
 	bind:expanded={toggler_expanded}
 >
 	<div slot="text">
 		{#if selected}
-			<span>{name}</span>: {selected ?? ""}
+			<span class="selected">{name}: {selected ?? ""}</span>
 		{:else}
 			<span>{name}</span>
 		{/if}
@@ -57,6 +55,11 @@ text="<p>{name}</p>"
 		padding-right: 1em;
 		float:left;
 		position:relative;
+	}
+
+	.selected {
+	font-weight:bold;
+	color:#1010FF;
 	}
 </style>
 

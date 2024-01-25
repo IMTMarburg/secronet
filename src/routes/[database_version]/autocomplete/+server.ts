@@ -8,7 +8,7 @@ type StringMap = {
 };
 let cache: StringMap = {};
 
-export async function GET({ url }: LoadInput) {
+export async function GET({ url, params }: LoadInput) {
   var dataset = url.searchParams.get("dataset");
   //add / if necessary
   if (dataset[dataset.length - 1] != "/") {
@@ -22,7 +22,7 @@ export async function GET({ url }: LoadInput) {
   let query = url.searchParams.get("query").toLowerCase();
   let prefix = url.searchParams.get("prefix", "false") != "false";
 
-  let out = await search_identifiers(query, dataset, prefix);
+  let out = await search_identifiers(query, params.database_version, dataset, prefix);
   if (out.length > 100) {
 	  out = out.slice(0, 100);
   }

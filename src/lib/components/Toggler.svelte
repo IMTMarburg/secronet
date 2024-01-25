@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { clickoutside } from '@svelte-put/clickoutside';
+  import { clickoutside } from "@svelte-put/clickoutside";
 
   export let expanded = false;
   export let klass;
 
   function toggleDisplay() {
-      expanded = !expanded;
+    expanded = !expanded;
   }
 
   function hide() {
-	  expanded = false;
+    expanded = false;
   }
 </script>
 

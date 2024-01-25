@@ -8,9 +8,27 @@ import { globSync } from "glob";
 let DATABASE_DIR = process.env["DATABASE_DIR"] ?? "database";
 let project_root = process.cwd();
 
-let database_root = path.resolve(path.join(project_root, DATABASE_DIR, "1")) +
+let database_root = path.resolve(path.join(project_root, DATABASE_DIR)) +
   "/";
 const index_separator = " / ";
+
+export async function list_databases(): Promise<string[]> {
+	let maybe_folders = globSync("*", { cwd: database_root });
+	let folders: string[] = [];
+	for (var folder of maybe_folders) {
+		if (fs.lstatSync(database_root + folder).isDirectory()) {
+			folders.push(folder);
+		}
+	}
+	return folders;
+}
+
+async function check_database_version(database_version: String) {
+  let databases = await list_databases();
+  if (!databases.includes(database_version)) {
+	throw new Error("Invalid database version "+ database_version);
+  }
+}
 
 interface Column {
   kind: String;
@@ -33,15 +51,17 @@ interface Dataset {
 }
 
 var cached_datasets: Dataset[] | null = null;
-export async function list_datasets(): Promise<Dataset[]> {
+export async function list_datasets(database_version: String): Promise<Dataset[]> {
+	console.log("list_datasets", database_version);
+   await check_database_version(database_version);
   if (cached_datasets == null) {
     //find every meta.json below database_root. So **/meta.json
     let out: Dataset[] = [];
-    var meta_jsons = globSync("**/meta.json", { cwd: database_root });
+    var meta_jsons = globSync("**/meta.json", { cwd: database_root + database_version });
     for (var idx in meta_jsons) {
       let filename = meta_jsons[idx];
       var info = JSON.parse(
-        (await fs.promises.readFile(database_root + filename)).toString(),
+        (await fs.promises.readFile(database_root + database_version + "/" + filename)).toString(),
       );
       out.push({
         name: filename.replace("/meta.json", ""),
@@ -63,9 +83,9 @@ function normalize_dataset(dataset: string): string {
   return dataset;
 }
 
-export async function get_meta(dataset: string): Promise<Meta> {
+export async function get_meta(database_version: String, dataset: string): Promise<Meta> {
   dataset = normalize_dataset(dataset);
-  let meta_filename = database_root + dataset + "meta.json";
+  let meta_filename = database_root + database_version + "/" + dataset + "meta.json";
   let meta: Meta = JSON.parse(
     (await fs.promises.readFile(meta_filename)).toString(),
   );
@@ -104,12 +124,13 @@ function or_filters(pl_filters: pl.Expr[]) {
 
 export async function search_identifiers(
   query: string,
+  database_version: string,
   dataset: string,
   prefix: boolean,
 ): Promise<string[]> {
-  let meta = await get_meta(dataset);
+  let meta = await get_meta(database_version, dataset);
   var index_columns = meta.index_columns;
-  let df = pl.scanParquet(database_root + dataset + "df.parquet");
+  let df = pl.scanParquet(database_root + database_version + "/" + dataset + "df.parquet");
   let col = df.select(index_columns);
   let uq = col.unique();
   var qs: (string | RegExp)[] = new Array();
@@ -149,9 +170,10 @@ export async function search_identifiers(
 
 export async function get_row(
   row_identifier: string,
+  database_version: string,
   dataset: string,
 ): Promise<pl.DataFrame> {
-  let meta = await get_meta(dataset);
+  let meta = await get_meta(database_version, dataset);
   var index_columns = meta.index_columns;
   var filters = row_identifier.split(index_separator);
   if (index_columns.length == 0) {
@@ -167,7 +189,7 @@ export async function get_row(
     );
   }
   var combined_filter = or_filters(pl_filter);
-  let df = pl.scanParquet(database_root + dataset + "df.parquet");
+  let df = pl.scanParquet(database_root + database_version + "/" + dataset + "df.parquet");
   let filtered = df.filter(combined_filter);
   //let casted = filtered.select(pl.col(pl.Categorical).cast(pl.Utf8));
   //let values = await casted.collect();
@@ -181,14 +203,15 @@ interface TVD {
   dataset: String;
 }
 
-export async function get_meta_tags(): Promise<TVD[]> {
+export async function get_meta_tags(database_version): Promise<TVD[]> {
+	console.log("get_meta_tags", database_version);
   //for all datasets,
   //go through their meta tags, and
   //return a list of {tag, value, dataset}
   let result: TVD[] = [];
-  let datasets = await list_datasets();
+  let datasets = await list_datasets(database_version);
   for (var dataset of datasets) {
-    let meta = await get_meta(dataset.name);
+    let meta = await get_meta(database_version, dataset.name);
     for (var tag of Object.keys(meta.tags)) {
       let value = meta.tags[tag];
       result.push({ tag: tag, value: value, dataset: dataset.name });

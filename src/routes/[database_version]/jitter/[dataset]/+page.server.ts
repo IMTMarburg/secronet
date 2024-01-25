@@ -1,13 +1,14 @@
 import { LoadInput, LoadOutput } from "@sveltejs/kit";
-import {get_meta} from '$lib/data';
+import { get_meta } from "$lib/data";
 
-  import pl from 'nodejs-polars';
 
 export async function load({ params }: LoadInput): LoadOutput {
 	let dataset = params.dataset.replaceAll(":::", "/");
+	let meta = get_meta(params.database_version, dataset);
 
   return {
-	  meta: get_meta(dataset),
-	  dataset: dataset
+	  'dataset': dataset,
+	  'database_version': params.database_version,
+	  'meta': meta,
   };
 }

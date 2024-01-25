@@ -8,6 +8,7 @@
 
   export let data;
   let dataset = data.dataset;
+  let database_version = data.database_version;
   let meta = data.meta;
   let value_columns = meta.value_columns;
   let condition_columns = meta.condition_columns;
@@ -50,7 +51,7 @@
     }
     console.log(identifier);
     var data = await fetch(
-      base +
+      base + "/" + database_version +
         "/row?" +
         new URLSearchParams({
           dataset: dataset,
@@ -115,6 +116,17 @@
       y_axis_type = "log";
       yrange = null;
     }
+	console.log({
+      //width: 400,
+      //height: 400,
+      title: "Jitter Plot - " + identifier,
+      tools: tools,
+      y_axis_label: value_column,
+      x_axis_label: condition_columns.join(" / "),
+      x_range: unique_condition_values,
+      y_range: yrange,
+      y_axis_type: y_axis_type,
+    });
 
     const p = Bokeh.Plotting.figure({
       //width: 400,
@@ -209,6 +221,7 @@
     <label for="selected">Entry of interest:</label>
     <DatasetAutoComplete
       {dataset}
+	  database_version = {data.database_version}
       column="Assay"
       bind:selected
       prefix="false"
@@ -221,7 +234,7 @@
 {#if selected === null}
   Loading...
 {:else}
-  You chave chosen:
+  You have chosen:
   <a href="#{formatHashParameters(selected, value_column)}">{selected}</a>
 {/if}
 
