@@ -11,9 +11,6 @@ let cache: StringMap = {};
 export async function GET({ url, params }: LoadInput) {
   var dataset = url.searchParams.get("dataset");
   //add / if necessary
-  if (dataset[dataset.length - 1] != "/") {
-    dataset += "/";
-  }
   if (dataset.indexOf("..") != -1) {
     throw new Error("Invalid dataset name");
   }

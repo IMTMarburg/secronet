@@ -14,7 +14,7 @@
       base +
       "/" +
       database_version +
-      "/autocomplete/?query=" +
+      "/cross_dataset_autocomplete/?query=" +
       encodeURIComponent(searchTerm) +
       "&dataset=" +
       encodeURIComponent(dataset) +

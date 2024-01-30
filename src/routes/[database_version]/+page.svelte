@@ -85,3 +85,8 @@
 	  <br />
 	{/if}
 {/each}
+
+<hr />
+<a href="{base}/{data.database_version}/cross_dataset">Cross Dataset view</a>
+
+

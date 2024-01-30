@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head />
-<a on:click={goUpOnePathComponent}
+<a on:click={goUpOnePathComponent} href="#"
   ><img src="{base}/logo.svg" alt="Secronet logo" /></a
 >
 <slot />

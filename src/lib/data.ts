@@ -1,9 +1,8 @@
 import fs from "fs";
 import path from "path";
-import {pl} from "nodejs-polars";
+import { pl } from "nodejs-polars";
 import process from "process";
 import { globSync } from "glob";
-
 
 let DATABASE_DIR = process.env["DATABASE_DIR"] ?? "database";
 let project_root = process.cwd();
@@ -13,20 +12,20 @@ let database_root = path.resolve(path.join(project_root, DATABASE_DIR)) +
 const index_separator = " / ";
 
 export async function list_databases(): Promise<string[]> {
-	let maybe_folders = globSync("*", { cwd: database_root });
-	let folders: string[] = [];
-	for (var folder of maybe_folders) {
-		if (fs.lstatSync(database_root + folder).isDirectory()) {
-			folders.push(folder);
-		}
-	}
-	return folders;
+  let maybe_folders = globSync("*", { cwd: database_root });
+  let folders: string[] = [];
+  for (var folder of maybe_folders) {
+    if (fs.lstatSync(database_root + folder).isDirectory()) {
+      folders.push(folder);
+    }
+  }
+  return folders;
 }
 
 async function check_database_version(database_version: String) {
   let databases = await list_databases();
   if (!databases.includes(database_version)) {
-	throw new Error("Invalid database version "+ database_version);
+    throw new Error("Invalid database version " + database_version);
   }
 }
 
@@ -51,17 +50,23 @@ interface Dataset {
 }
 
 var cached_datasets: Dataset[] | null = null;
-export async function list_datasets(database_version: String): Promise<Dataset[]> {
-	console.log("list_datasets", database_version);
-   await check_database_version(database_version);
+export async function list_datasets(
+  database_version: String,
+): Promise<Dataset[]> {
+  console.log("list_datasets", database_version);
+  await check_database_version(database_version);
   if (cached_datasets == null) {
     //find every meta.json below database_root. So **/meta.json
     let out: Dataset[] = [];
-    var meta_jsons = globSync("**/meta.json", { cwd: database_root + database_version });
+    var meta_jsons = globSync("**/meta.json", {
+      cwd: database_root + database_version,
+    });
     for (var idx in meta_jsons) {
       let filename = meta_jsons[idx];
       var info = JSON.parse(
-        (await fs.promises.readFile(database_root + database_version + "/" + filename)).toString(),
+        (await fs.promises.readFile(
+          database_root + database_version + "/" + filename,
+        )).toString(),
       );
       out.push({
         name: filename.replace("/meta.json", ""),
@@ -83,9 +88,13 @@ function normalize_dataset(dataset: string): string {
   return dataset;
 }
 
-export async function get_meta(database_version: String, dataset: string): Promise<Meta> {
+export async function get_meta(
+  database_version: String,
+  dataset: string,
+): Promise<Meta> {
   dataset = normalize_dataset(dataset);
-  let meta_filename = database_root + database_version + "/" + dataset + "meta.json";
+  let meta_filename = database_root + database_version + "/" + dataset +
+    "meta.json";
   let meta: Meta = JSON.parse(
     (await fs.promises.readFile(meta_filename)).toString(),
   );
@@ -130,7 +139,14 @@ export async function search_identifiers(
 ): Promise<string[]> {
   let meta = await get_meta(database_version, dataset);
   var index_columns = meta.index_columns;
-  let df = pl.scanParquet(database_root + database_version + "/" + dataset + "df.parquet");
+
+  if (dataset[dataset.length - 1] != "/") {
+    dataset += "/";
+  }
+
+  let df = pl.scanParquet(
+    database_root + database_version + "/" + dataset + "df.parquet",
+  );
   let col = df.select(index_columns);
   let uq = col.unique();
   var qs: (string | RegExp)[] = new Array();
@@ -174,13 +190,20 @@ export async function get_row(
   dataset: string,
 ): Promise<pl.DataFrame> {
   let meta = await get_meta(database_version, dataset);
+  if (!dataset.endsWith("/")) {
+    dataset = dataset + "/";
+  }
+
   var index_columns = meta.index_columns;
   var filters = row_identifier.split(index_separator);
   if (index_columns.length == 0) {
     throw new Error("No index columns?");
   }
   if (index_columns.length != filters.length) {
-    throw new Error("Invalid row identifier");
+    throw new Error(
+      "Invalid row identifier " + dataset + " " +
+        JSON.stringify(index_columns) + JSON.stringify(filters),
+    );
   }
   var pl_filter: Array<pl.Expr> = [];
   for (var ii = 0; ii < index_columns.length; ii++) {
@@ -189,7 +212,9 @@ export async function get_row(
     );
   }
   var combined_filter = or_filters(pl_filter);
-  let df = pl.scanParquet(database_root + database_version + "/" + dataset + "df.parquet");
+  let df = pl.scanParquet(
+    database_root + database_version + "/" + dataset + "df.parquet",
+  );
   let filtered = df.filter(combined_filter);
   //let casted = filtered.select(pl.col(pl.Categorical).cast(pl.Utf8));
   //let values = await casted.collect();
@@ -204,7 +229,7 @@ interface TVD {
 }
 
 export async function get_meta_tags(database_version): Promise<TVD[]> {
-	console.log("get_meta_tags", database_version);
+  console.log("get_meta_tags", database_version);
   //for all datasets,
   //go through their meta tags, and
   //return a list of {tag, value, dataset}
