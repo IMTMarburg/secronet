@@ -53,7 +53,6 @@ var cached_datasets: Dataset[] | null = null;
 export async function list_datasets(
   database_version: String,
 ): Promise<Dataset[]> {
-  console.log("list_datasets", database_version);
   await check_database_version(database_version);
   if (cached_datasets == null) {
 	  cached_datasets = {};

@@ -94,6 +94,7 @@
     let ydist = yrange_naive[1] - yrange_naive[0];
     let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
 
+
     let SaveTool = Bokeh.Models._known_models.get("SaveTool");
     let custom_tooltips = [];
     for (var c in meta["columns"]) {
@@ -116,21 +117,11 @@
       y_axis_type = "log";
       yrange = null;
     }
-	console.log({
-      //width: 400,
-      //height: 400,
-      title: "Jitter Plot - " + identifier,
-      tools: tools,
-      y_axis_label: value_column,
-      x_axis_label: condition_columns.join(" / "),
-      x_range: unique_condition_values,
-      y_range: yrange,
-      y_axis_type: y_axis_type,
-    });
 
     const p = Bokeh.Plotting.figure({
       //width: 400,
       //height: 400,
+	  width: document.body.clientWidth * 0.9,
       title: "Jitter Plot - " + identifier,
       tools: tools,
       y_axis_label: value_column,
@@ -139,17 +130,111 @@
       y_range: yrange,
       y_axis_type: y_axis_type,
     });
+	 //p.legend.location = "center";
+	console.log(bokeh_input);
     const source = new Bokeh.ColumnDataSource({ data: bokeh_input });
     let Jitter = Bokeh.Models._known_models.get("Jitter");
     let jitter = new Jitter({ width: 0.4, range: p.x_range });
+
+	let legend_items = [];
+	let Legend = Bokeh.Models._known_models.get("Legend");
+	let LegendItem = Bokeh.Models._known_models.get("LegendItem");
+
+	let color_columns = condition_columns.filter(
+      (col) => meta["columns"][col]["xaxis"] == "color"
+    );
+	let color = "darkgrey";
+	if (color_columns.length > 0) {
+	    let CategoricalColorMapper = Bokeh.Models._known_models.get("CategoricalColorMapper");
+		const color_categories = bokeh_input[color_columns[0]];
+		let unique_color_categories = [...new Set(color_categories)];
+		let palette = [
+    "#1C86EE",
+    "#E31A1C",  
+    "#008B00",
+    "#6A3D9A", 
+    "#FF7F00",
+    "#4D4D4D",
+    "#FFD700",
+    "#7EC0EE",
+    "#FB9A99",
+    "#90EE90",
+    "#0000FF",
+    "#FDBF6F",
+    "#B3B3B3",
+    "#EEE685",
+    "#B03060",
+    "#FF83FA",
+    "#FF1493",
+    "#0000FF",
+    "#36648B",
+    "#00CED1",
+    "#00FF00",
+    "#8B8B00",
+    "#CDCD00",
+    "#A52A2A",
+];
+		let cmap= new CategoricalColorMapper({palette: palette, factors:unique_color_categories});
+		color = {field: color_columns[0], transform: cmap};
+		for (var i = 0; i < unique_color_categories.length; i++) {
+			legend_items.push(
+				new LegendItem({label: unique_color_categories[i], renderers: [
+				p.scatter("","", {
+					marker: "circle",
+					color: palette[i % palette.length],
+					size: 20,
+					source: null,
+				})]}));
+		}
+		
+	}
+	let shape_columns = condition_columns.filter(
+      (col) => meta["columns"][col]["xaxis"] == "shape"
+    );
+	let shape =	"circle";
+	if (shape_columns.length > 0) {
+	    let CategoricalMarkerMapper = Bokeh.Models._known_models.get("CategoricalMarkerMapper");
+		const shape_categories = bokeh_input[shape_columns[0]];
+		let unique_shape_categories = [...new Set(shape_categories)];
+		let markers = ["circle", "square", "triangle", "asterisk", "circle_x", "square_x", "inverted_triangle", "x", "circle_cross", "square_cross"];
+		let smap= new CategoricalMarkerMapper({
+			factors:unique_shape_categories,
+			markers: markers
+			});
+		shape = {field: shape_columns[0], transform: smap, legend_label: shape_columns[0]};
+		for (var i = 0; i < unique_shape_categories.length; i++) {
+			legend_items.push(
+				new LegendItem({label: unique_shape_categories[i], renderers: [
+				p.scatter("","", {
+					marker: markers[i % markers.length],
+					size: 20,
+					color: "darkgrey",
+					source: null,
+				})]}));
+		}
+
+
+	}
+
+
     const glyph = new Bokeh.Scatter({
       x: { field: x_columns[0], transform: jitter },
       y: { field: value_column },
-      line_color: "#66FF99",
+	  fill_color: color,
+	  marker: shape,
+     // line_color: "#66FF99",
       line_width: 0,
       size: 20,
     });
-    p.add_glyph(glyph, source);
+	p.add_glyph(glyph, source, );
+
+	let legend = new Legend({items: legend_items, orientation:"vertical"});
+
+	p.add_layout(legend, "left")
+
+
+
+
     if (value_column == "FDR") {
       //add a horizontal line at 0.05
       p.add_layout(
@@ -247,3 +332,5 @@
     width: 30em !important;
   }
 </style>
+
+

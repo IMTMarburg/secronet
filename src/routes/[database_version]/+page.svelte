@@ -42,12 +42,10 @@
 
   function update_filtered() {
 	let meta = data.meta_tags;
-	console.log(filters);
 	for (let dataset of data.datasets) {
 		filtered[dataset.name] = filter_dataset(dataset.name, meta);
 	}
 	filtered  = filtered;
-	console.log(filtered);
   }
 
   function filter_dataset(dataset_name, meta) {
@@ -68,7 +66,7 @@
 </svelte:head>
 <p class="title">a GRK 2573/1 website</p>
 
-<h2>Dataset selector</h2>
+<h2>{data.database_version} - Dataset selector</h2>
 <b style="float:left;">Filter: &nbsp;</b>
 {#each Object.entries(get_tag_values()) as values, tag}
 	<Picker items={values[1]} name={values[0]} on:chosen={picker_chosen} />

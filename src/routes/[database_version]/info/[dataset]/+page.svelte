@@ -32,3 +32,17 @@
 {:catch error}
   An error occured: {error.message}
 {/await}
+
+<h2>Metadata</h2>
+<table>
+  <tr>
+    <th>Key</th>
+    <th>Value</th>
+  </tr>
+  {#each Object.entries(data.meta.tags) as [key, value]}
+    <tr>
+      <td>{key}</td>
+      <td>{value}</td>
+    </tr>
+  {/each}
+</table>
