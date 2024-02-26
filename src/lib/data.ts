@@ -56,6 +56,9 @@ export async function list_datasets(
   console.log("list_datasets", database_version);
   await check_database_version(database_version);
   if (cached_datasets == null) {
+	  cached_datasets = {};
+  }
+  if (cached_datasets[database_version] == undefined) {
     //find every meta.json below database_root. So **/meta.json
     let out: Dataset[] = [];
     var meta_jsons = globSync("**/meta.json", {
@@ -73,9 +76,9 @@ export async function list_datasets(
         description: info["description"],
       });
     }
-    cached_datasets = out;
+    cached_datasets[database_version] = out;
   }
-  return cached_datasets;
+  return cached_datasets[database_version];
 }
 
 function normalize_dataset(dataset: string): string {
@@ -229,12 +232,12 @@ interface TVD {
 }
 
 export async function get_meta_tags(database_version): Promise<TVD[]> {
-  console.log("get_meta_tags", database_version);
   //for all datasets,
   //go through their meta tags, and
   //return a list of {tag, value, dataset}
   let result: TVD[] = [];
   let datasets = await list_datasets(database_version);
+  console.log(datasets);
   for (var dataset of datasets) {
     let meta = await get_meta(database_version, dataset.name);
     for (var tag of Object.keys(meta.tags)) {
