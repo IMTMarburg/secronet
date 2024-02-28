@@ -236,7 +236,7 @@ export async function get_meta_tags(database_version): Promise<TVD[]> {
   //return a list of {tag, value, dataset}
   let result: TVD[] = [];
   let datasets = await list_datasets(database_version);
-  console.log(datasets);
+  //console.log(datasets);
   for (var dataset of datasets) {
     let meta = await get_meta(database_version, dataset.name);
     for (var tag of Object.keys(meta.tags)) {
