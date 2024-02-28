@@ -1,7 +1,18 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { browser } from "$app/environment";
+  import Toggler from "$lib/components/Toggler.svelte";
 
+  import { unified } from "unified";
+  import { remark } from "remark";
+  import remarkGfm from "remark-gfm";
+  import html from "remark-html";
+
+
+  async function format_markdown(text) {
+    const file = await remark().use(remarkGfm).use(html).process(text);
+    return String(file);
+  }
 
   import DatasetAutoComplete from "$lib/components/DatasetAutoComplete.svelte";
   import { base } from "$app/paths";
@@ -24,7 +35,7 @@
     let params = new URLSearchParams();
     params.set("identifier", identifier);
     params.set("value_column", value_column);
-	return params;
+    return params;
   }
 
   function setHashParameters(identifier, value_column) {
@@ -49,9 +60,10 @@
     if (!browser) {
       return;
     }
-    console.log(identifier);
     var data = await fetch(
-      base + "/" + database_version +
+      base +
+        "/" +
+        database_version +
         "/row?" +
         new URLSearchParams({
           dataset: dataset,
@@ -88,12 +100,14 @@
       Math.min(...bokeh_input[y_column]),
       Math.max(...bokeh_input[y_column]),
     ];
+	if (yrange_naive[0] == yrange_naive[1]) {
+		yrange_naive[1] = yrange_naive[0] + 0.1;
+	}
     if (y_column == "log2fc") {
       yrange_naive[0] = Math.min(yrange_naive[0], -1);
     }
     let ydist = yrange_naive[1] - yrange_naive[0];
     let yrange = [yrange_naive[0] - ydist * 0.1, yrange_naive[1] + ydist * 0.1]; // add some space.
-
 
     let SaveTool = Bokeh.Models._known_models.get("SaveTool");
     let custom_tooltips = [];
@@ -121,7 +135,7 @@
     const p = Bokeh.Plotting.figure({
       //width: 400,
       //height: 400,
-	  width: document.body.clientWidth * 0.9,
+      width: document.body.clientWidth * 0.9,
       title: "Jitter Plot - " + identifier,
       tools: tools,
       y_axis_label: value_column,
@@ -130,110 +144,134 @@
       y_range: yrange,
       y_axis_type: y_axis_type,
     });
-	 //p.legend.location = "center";
-	console.log(bokeh_input);
+    //p.legend.location = "center";
     const source = new Bokeh.ColumnDataSource({ data: bokeh_input });
     let Jitter = Bokeh.Models._known_models.get("Jitter");
     let jitter = new Jitter({ width: 0.4, range: p.x_range });
 
-	let legend_items = [];
-	let Legend = Bokeh.Models._known_models.get("Legend");
-	let LegendItem = Bokeh.Models._known_models.get("LegendItem");
+    let legend_items = [];
+    let Legend = Bokeh.Models._known_models.get("Legend");
+    let LegendItem = Bokeh.Models._known_models.get("LegendItem");
 
-	let color_columns = condition_columns.filter(
+    let color_columns = condition_columns.filter(
       (col) => meta["columns"][col]["xaxis"] == "color"
     );
-	let color = "darkgrey";
-	if (color_columns.length > 0) {
-	    let CategoricalColorMapper = Bokeh.Models._known_models.get("CategoricalColorMapper");
-		const color_categories = bokeh_input[color_columns[0]];
-		let unique_color_categories = [...new Set(color_categories)];
-		let palette = [
-    "#1C86EE",
-    "#E31A1C",  
-    "#008B00",
-    "#6A3D9A", 
-    "#FF7F00",
-    "#4D4D4D",
-    "#FFD700",
-    "#7EC0EE",
-    "#FB9A99",
-    "#90EE90",
-    "#0000FF",
-    "#FDBF6F",
-    "#B3B3B3",
-    "#EEE685",
-    "#B03060",
-    "#FF83FA",
-    "#FF1493",
-    "#0000FF",
-    "#36648B",
-    "#00CED1",
-    "#00FF00",
-    "#8B8B00",
-    "#CDCD00",
-    "#A52A2A",
-];
-		let cmap= new CategoricalColorMapper({palette: palette, factors:unique_color_categories});
-		color = {field: color_columns[0], transform: cmap};
-		for (var i = 0; i < unique_color_categories.length; i++) {
-			legend_items.push(
-				new LegendItem({label: unique_color_categories[i], renderers: [
-				p.scatter("","", {
-					marker: "circle",
-					color: palette[i % palette.length],
-					size: 20,
-					source: null,
-				})]}));
-		}
-		
-	}
-	let shape_columns = condition_columns.filter(
+    let color = "darkgrey";
+    if (color_columns.length > 0) {
+      let CategoricalColorMapper = Bokeh.Models._known_models.get(
+        "CategoricalColorMapper"
+      );
+      const color_categories = bokeh_input[color_columns[0]];
+      let unique_color_categories = [...new Set(color_categories)];
+      let palette = [
+        "#1C86EE",
+        "#E31A1C",
+        "#008B00",
+        "#6A3D9A",
+        "#FF7F00",
+        "#4D4D4D",
+        "#FFD700",
+        "#7EC0EE",
+        "#FB9A99",
+        "#90EE90",
+        "#0000FF",
+        "#FDBF6F",
+        "#B3B3B3",
+        "#EEE685",
+        "#B03060",
+        "#FF83FA",
+        "#FF1493",
+        "#0000FF",
+        "#36648B",
+        "#00CED1",
+        "#00FF00",
+        "#8B8B00",
+        "#CDCD00",
+        "#A52A2A",
+      ];
+      let cmap = new CategoricalColorMapper({
+        palette: palette,
+        factors: unique_color_categories,
+      });
+      color = { field: color_columns[0], transform: cmap };
+      for (var i = 0; i < unique_color_categories.length; i++) {
+        legend_items.push(
+          new LegendItem({
+            label: unique_color_categories[i],
+            renderers: [
+              p.scatter("", "", {
+                marker: "circle",
+                color: palette[i % palette.length],
+                size: 20,
+                source: null,
+              }),
+            ],
+          })
+        );
+      }
+    }
+    let shape_columns = condition_columns.filter(
       (col) => meta["columns"][col]["xaxis"] == "shape"
     );
-	let shape =	"circle";
-	if (shape_columns.length > 0) {
-	    let CategoricalMarkerMapper = Bokeh.Models._known_models.get("CategoricalMarkerMapper");
-		const shape_categories = bokeh_input[shape_columns[0]];
-		let unique_shape_categories = [...new Set(shape_categories)];
-		let markers = ["circle", "square", "triangle", "asterisk", "circle_x", "square_x", "inverted_triangle", "x", "circle_cross", "square_cross"];
-		let smap= new CategoricalMarkerMapper({
-			factors:unique_shape_categories,
-			markers: markers
-			});
-		shape = {field: shape_columns[0], transform: smap, legend_label: shape_columns[0]};
-		for (var i = 0; i < unique_shape_categories.length; i++) {
-			legend_items.push(
-				new LegendItem({label: unique_shape_categories[i], renderers: [
-				p.scatter("","", {
-					marker: markers[i % markers.length],
-					size: 20,
-					color: "darkgrey",
-					source: null,
-				})]}));
-		}
-
-
-	}
-
+    let shape = "circle";
+    if (shape_columns.length > 0) {
+      let CategoricalMarkerMapper = Bokeh.Models._known_models.get(
+        "CategoricalMarkerMapper"
+      );
+      const shape_categories = bokeh_input[shape_columns[0]];
+      let unique_shape_categories = [...new Set(shape_categories)];
+      let markers = [
+        "circle",
+        "square",
+        "triangle",
+        "asterisk",
+        "circle_x",
+        "square_x",
+        "inverted_triangle",
+        "x",
+        "circle_cross",
+        "square_cross",
+      ];
+      let smap = new CategoricalMarkerMapper({
+        factors: unique_shape_categories,
+        markers: markers,
+      });
+      shape = {
+        field: shape_columns[0],
+        transform: smap,
+        legend_label: shape_columns[0],
+      };
+      for (var i = 0; i < unique_shape_categories.length; i++) {
+        legend_items.push(
+          new LegendItem({
+            label: unique_shape_categories[i],
+            renderers: [
+              p.scatter("", "", {
+                marker: markers[i % markers.length],
+                size: 20,
+                color: "darkgrey",
+                source: null,
+              }),
+            ],
+          })
+        );
+      }
+    }
 
     const glyph = new Bokeh.Scatter({
       x: { field: x_columns[0], transform: jitter },
       y: { field: value_column },
-	  fill_color: color,
-	  marker: shape,
-     // line_color: "#66FF99",
+      fill_color: color,
+      marker: shape,
+      // line_color: "#66FF99",
       line_width: 0,
       size: 20,
     });
-	p.add_glyph(glyph, source, );
+    p.add_glyph(glyph, source);
 
-	let legend = new Legend({items: legend_items, orientation:"vertical"});
+    let legend = new Legend({ items: legend_items, orientation: "vertical" });
 
-	p.add_layout(legend, "left")
-
-
-
+    p.add_layout(legend, "left");
 
     if (value_column == "FDR") {
       //add a horizontal line at 0.05
@@ -275,7 +313,53 @@
   <title>Secronet - {dataset} - jitter</title>
 </svelte:head>
 
+<br />
 <p class="title">{dataset}</p>
+<p style="margin-left:1em; margin-top:0;">
+  <Toggler klass="inline_toggler">
+    <div slot="text">Help</div>
+	<div class="popup">
+	You are viewing a single dataset. <br />
+	Choose an identifier by typing in the box. <br />
+	You can search for example for partial gene names.	<br />
+	Then pick a 'full identifier' from the list. <br />
+	<br />
+	Hover over the points in the plot to see their full data. <br />
+	<br />
+	Click Metadata or Description to learn more about this dataaset.
+	</div>
+	</Toggler>
+  <Toggler klass="inline_toggler">
+    <div slot="text">Metadata</div>
+	<div>
+    <table class="popup">
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+
+      {#each Object.entries(data.meta.tags) as [key, value]}
+        <tr>
+          <td>{key}</td>
+          <td>{value}</td>
+        </tr>
+      {/each}
+    </table>
+	</div>
+  </Toggler>
+  <Toggler klass="inline_toggler">
+    <div slot="text">Description</div>
+	<div class="popup">
+    {#await format_markdown(meta.description)}
+      loading...
+    {:then text}
+      {@html text}
+    {:catch error}
+      An error occured: {error.message}
+    {/await}
+	</div>
+  </Toggler>
+</p>
 <hr />
 
 <div class="form-container">
@@ -306,7 +390,7 @@
     <label for="selected">Entry of interest:</label>
     <DatasetAutoComplete
       {dataset}
-	  database_version = {data.database_version}
+      database_version={data.database_version}
       column="Assay"
       bind:selected
       prefix="false"
@@ -332,5 +416,3 @@
     width: 30em !important;
   }
 </style>
-
-

@@ -582,3 +582,15 @@ select {
 	background-color: var(--color-bg-primary);
 }
 
+.popup {
+	border: 3px dashed var(--color-bg-secondary);
+	padding-left: .5em;
+	padding-right: .5em;
+	border-radius: var(--border-radius);
+	margin-left: .5em;
+}
+
+.inline_toggler {
+	float:left;
+	margin-right:1em;
+}

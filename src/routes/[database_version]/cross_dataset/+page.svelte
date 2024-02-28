@@ -2,6 +2,7 @@
   import CrossDatasetAutoComplete from "$lib/components/CrossDatasetAutoComplete.svelte";
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { browser } from "$app/environment";
+  import Toggler from "$lib/components/Toggler.svelte";
   import { base } from "$app/paths";
   export let data;
 
@@ -9,7 +10,10 @@
   let selected;
   let bokeh_target = null;
 
-  let identifiers = [{ name: "OID20211 / ANGPTL1 / ENSG00000116194" }];
+  let identifiers = [
+    { name: "OID20211 / ANGPTL1 / ENSG00000116194" },
+    { name: "ENSMUSG00000033544 / Angptl1" },
+  ];
 
   async function add_identifier() {
     if (selected) {
@@ -61,7 +65,7 @@
     if (identifiers.length == 0) {
       bokeh_target.innerHTML = "No identifiers selected";
     } else {
-      bokeh_target.innerHTML = "...";
+      bokeh_target.innerHTML = "";
       for (let identifier of identifiers) {
         let data = await get_data(identifier);
         for (let value_name of Object.keys(data)) {
@@ -79,10 +83,10 @@
           if (value_name == "log2fc") {
             yrange_naive[0] = Math.min(yrange_naive[0], -1);
           }
-		  if (yrange_naive[0] == yrange_naive[1]) {
-			yrange_naive[0] = yrange_naive[0] - 0.1;
-			yrange_naive[1] = yrange_naive[0] + 0.1;
-		  }
+          if (yrange_naive[0] == yrange_naive[1]) {
+            yrange_naive[0] = yrange_naive[0] - 0.1;
+            yrange_naive[1] = yrange_naive[0] + 0.1;
+          }
           let ydist = yrange_naive[1] - yrange_naive[0];
           let yrange = [
             yrange_naive[0] - ydist * 0.1,
@@ -90,18 +94,21 @@
           ]; // add some space.
           let SaveTool = Bokeh.Models._known_models.get("SaveTool");
           let custom_tooltips = [];
-			custom_tooltips.push(["", "@parsed_info{safe}"]);
+          custom_tooltips.push(["", "@parsed_info{safe}"]);
 
-		  bokeh_input["parsed_info"] = bokeh_input["info"].map(function (info) {
-			var res = "";
-			let keys = Object.keys(info);
-			keys.sort();
-			for (let key of keys) {
-				res += "<b><b>" + key + "</b></b>: " + info[key] + "<br />";
-			}
-			return res;
-		  });
-          const tools = [
+          bokeh_input["parsed_info"] = bokeh_input["info"].map(function (info) {
+            var res = "";
+            let keys = Object.keys(info);
+			//sort case insensitive
+			keys.sort(function(a, b) {
+				return a.toLowerCase().localeCompare(b.toLowerCase());
+			});
+            for (let key of keys) {
+              res += "<b><b>" + key + "</b></b>: " + info[key] + "<br />";
+            }
+            return res;
+          });
+          var tools = [
             "pan",
             "crosshair",
             "wheel_zoom",
@@ -113,7 +120,6 @@
                 "_" +
                 identifier.name.replace("/", ""),
             }),
-            new Bokeh.HoverTool({ tooltips: custom_tooltips }),
           ];
 
           var y_axis_type = "auto";
@@ -125,6 +131,7 @@
           const p = Bokeh.Plotting.figure({
             //width: 400,
             //height: 400,
+            width: document.body.clientWidth * 0.9,
             title:
               "Cross dataset plot - " + identifier.name + " - " + value_name,
             tools: tools,
@@ -134,9 +141,35 @@
             x_range: yrange,
             x_axis_type: y_axis_type,
           });
+
           const source = new Bokeh.ColumnDataSource({ data: bokeh_input });
           let Jitter = Bokeh.Models._known_models.get("Jitter");
           let jitter = new Jitter({ width: 0.4, range: p.y_range });
+
+          // background rectangles
+          const bg = new Bokeh.Rect({
+            x: yrange[0] + (yrange[1] - yrange[0]) / 2,
+            width: (yrange[1] - yrange[0]) * 10,
+            y: { field: "y" },
+            height: 1,
+            fill_color: { field: "color" },
+            fill_alpha: 0.5,
+          });
+          console.log(yrange[1] - yrange[0]);
+
+          var bg_color = [];
+          for (let i = 0; i < unique_condition_values.length; i++) {
+            if (i % 2 == 0) {
+              bg_color.push("FFFFFF");
+            } else {
+              bg_color.push("#BBBBBB");
+            }
+          }
+          const bg_source = new Bokeh.ColumnDataSource({
+            data: { y: unique_condition_values, color: bg_color },
+          });
+          p.add_glyph(bg, bg_source);
+
           const glyph = new Bokeh.Scatter({
             y: { field: "x", transform: jitter },
             x: { field: "y" },
@@ -144,7 +177,7 @@
             line_width: 0,
             size: 20,
           });
-          p.add_glyph(glyph, source);
+          let glyph_render = p.add_glyph(glyph, source);
           if (value_name == "FDR") {
             //add a horizontal line at 0.05
             p.add_layout(
@@ -164,8 +197,13 @@
               })
             );
           }
+          p.add_tools(
+            new Bokeh.HoverTool({
+              tooltips: custom_tooltips,
+              renderers: [glyph_render],
+            })
+          );
 
-          bokeh_target.innerHTML = "";
           Bokeh.Plotting.show(p, bokeh_target);
         }
       }
@@ -180,6 +218,25 @@
 
 <br />
 <p class="title">Cross dataset view</p>
+<p style="margin-left:1em; margin-top:0;">
+  <Toggler klass="inline_toggler">
+    <div slot="text">Help</div>
+	<div class="popup">
+	You are in the cross dataset view.<br />
+	Choose any number of identifiers by typing in the box. <br />
+	You can search for example for partial gene names.	<br />
+	Then pick a 'full identifier' from the list. <br />
+	<br />
+	Hover over the points in the plot to see their full data. <br />
+	<br />
+	Note that one gene/protein might have serveral identifiers
+	depending on the measurement method used (RNAseq, mass-spec, Olink.... You can therefore add multiple identifiers (just reclick the box), 
+	and receive one plot per identifier.<br />
+	<br />
+	Each row in a plot is one 'condition' in one dataset.<br />
+	Hover over the points to learn which dataset they are from. <br />
+	</div>
+	</Toggler>
 <hr />
 <div>
   <b> Search identifiers </b>
@@ -214,7 +271,7 @@
 
 <div bind:this={bokeh_target}>...</div>
 
-<div>
+<!-- <div>
   {#if identifiers.length > 0}
     {#each identifiers as identifier}
       <h3>{identifier.name}</h3>
@@ -227,4 +284,4 @@
       {/await}
     {/each}
   {/if}
-</div>
+</div> -->

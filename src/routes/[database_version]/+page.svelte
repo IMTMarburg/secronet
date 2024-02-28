@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import Toggler from "$lib/components/Toggler.svelte";
   import { browser } from "$app/environment";
 
 
@@ -65,6 +66,20 @@
   <title>Secronet - a GRK 2573/1 website</title>
 </svelte:head>
 <p class="title">a GRK 2573/1 website</p>
+
+<p>
+  <Toggler klass="inline_toggler">
+    <div slot="text">Help</div>
+    <div class="popup">
+		In this view you can either pick a single dataset to examine, <br /> or examine multiple datasets with the "cross Dataset view' link at the bottom.<br />
+		<br />
+		To quickly find datasets of interest, use the filter buttons.
+    </div>
+  </Toggler>
+</p>
+<br clear="both"/>
+
+
 
 <h2>{data.database_version} - Dataset selector</h2>
 <b style="float:left;">Filter: &nbsp;</b>
