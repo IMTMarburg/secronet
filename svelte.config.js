@@ -10,7 +10,7 @@ const config = {
       base: "/secronet",
     },
   },
-    baseUrl: "/secronet",
+    baseUrl: "/secronet/",
 };
 
 export default config;
