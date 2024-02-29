@@ -25,6 +25,7 @@
 		"@bokeh/bokehjs": "^3.2.2",
 		"@svelte-put/clickoutside": "^3.0.0",
 		"@types/glob": "^8.1.0",
+		"@untemps/svelte-use-tooltip": "^2.8.0",
 		"email-validator": "^2.0.4",
 		"glob": "^10.3.3",
 		"handlebars": "^4.7.7",

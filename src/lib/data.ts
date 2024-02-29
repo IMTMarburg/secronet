@@ -35,7 +35,7 @@ interface Column {
   order: Number | undefined;
 }
 
-interface Meta {
+interface Meta { //also includes all that was defined in meta.json
   columns: {
     [key: string]: Column;
   };
@@ -47,6 +47,7 @@ interface Meta {
 interface Dataset {
   name: string;
   description: string;
+  meta: Meta,
 }
 
 var cached_datasets: Dataset[] | null = null;
@@ -70,9 +71,11 @@ export async function list_datasets(
           database_root + database_version + "/" + filename,
         )).toString(),
       );
+	  let name = filename.replace("/meta.json", "");
       out.push({
-        name: filename.replace("/meta.json", ""),
+        name: name,
         description: info["description"],
+		meta: await get_meta(database_version, name),
       });
     }
     cached_datasets[database_version] = out;

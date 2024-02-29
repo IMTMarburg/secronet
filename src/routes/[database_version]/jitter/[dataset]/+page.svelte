@@ -2,6 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { browser } from "$app/environment";
   import Toggler from "$lib/components/Toggler.svelte";
+  import MetaTable from "$lib/components/MetaTable.svelte";
 
   import { unified } from "unified";
   import { remark } from "remark";
@@ -332,19 +333,7 @@
   <Toggler klass="inline_toggler">
     <div slot="text">Metadata</div>
 	<div>
-    <table class="popup">
-      <tr>
-        <th>Key</th>
-        <th>Value</th>
-      </tr>
-
-      {#each Object.entries(data.meta.tags) as [key, value]}
-        <tr>
-          <td>{key}</td>
-          <td>{value}</td>
-        </tr>
-      {/each}
-    </table>
+	<MetaTable meta={data.meta} table_class="popup" />
 	</div>
   </Toggler>
   <Toggler klass="inline_toggler">

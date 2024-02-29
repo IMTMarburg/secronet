@@ -6,6 +6,8 @@
   import remarkGfm from "remark-gfm";
   import html from "remark-html";
 
+  import MetaTable from "$lib/components/MetaTable.svelte";
+
   export let data;
   let dataset = data.dataset;
 
@@ -34,15 +36,4 @@
 {/await}
 
 <h2>Metadata</h2>
-<table>
-  <tr>
-    <th>Key</th>
-    <th>Value</th>
-  </tr>
-  {#each Object.entries(data.meta.tags) as [key, value]}
-    <tr>
-      <td>{key}</td>
-      <td>{value}</td>
-    </tr>
-  {/each}
-</table>
+<MetaTable meta={data.meta} />
