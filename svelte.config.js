@@ -4,13 +4,10 @@ import { vitePreprocess } from "@sveltejs/kit/vite";
 const config = {
   preprocess: vitePreprocess(),
 
-  paths: {
-    relative: false,
-  },
-
   kit: {
     adapter: adapter(),
     paths: {
+      relative: false,
       base: "/secronet",
     },
   },
