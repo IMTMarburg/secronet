@@ -26,7 +26,7 @@
 
 <svelte:head />
 <a on:click={goUpOnePathComponent} 
-style="cursor:pointer;">
+style="cursor:pointer;"
   ><img src="{base}/logo.svg" alt="Secronet logo" /></a
 >
 <slot />
