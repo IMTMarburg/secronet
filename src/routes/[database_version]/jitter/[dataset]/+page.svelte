@@ -11,7 +11,7 @@
 
 
   async function format_markdown(text) {
-    const file = await remark().use(remarkGfm).use(html).process(text);
+    const file = await remark().use(remarkGfm).use(html, {sanitize: false}).process(text);
     return String(file);
   }
 

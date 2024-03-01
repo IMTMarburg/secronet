@@ -4,6 +4,7 @@
   import { unified } from "unified";
   import { remark } from "remark";
   import remarkGfm from "remark-gfm";
+  import remarkEmbedImages from 'remark-embed-images'
   import html from "remark-html";
 
   import MetaTable from "$lib/components/MetaTable.svelte";
@@ -14,7 +15,7 @@
   let content = data.meta.description;
 
   async function format_markdown(text) {
-    const file = await remark().use(remarkGfm).use(html).process(text);
+	const file = await remark().use(remarkEmbedImages).use(remarkGfm).use(html, {sanitize: false}).process(text);
     return String(file);
   }
 </script>

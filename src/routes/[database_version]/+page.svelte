@@ -97,13 +97,8 @@
 	<MetaTable meta={dataset.meta} header=""/>
 	</div>
     </template>
-    <b
-      use:useTooltip={{
-        contentSelector: "#meta_" + idx,
-		position:'right',
-		containerClassName: `tooltip tooltip-right`,
-      }}>{dataset.name}</b
-    >:
+    <span><b>{dataset.name}
+	:</b>
     <a
       href="{base}/{data.database_version}/info/{dataset.name.replaceAll(
         '/',
@@ -117,6 +112,7 @@
         ':::'
       )}">Jitter</a
     >
+	</span>
     <br />
   {/if}
 {/each}
