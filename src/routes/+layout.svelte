@@ -13,16 +13,20 @@
     const pathArray = window.location.pathname.split("/");
     console.log(pathArray);
     if (pathArray.length > 3) {
-      const newPath = `/${pathArray.slice(1, 3).join("/")}`;
-      goto(newPath);
+      var newPath = `/${pathArray.slice(1, 3).join("/")}`;
+	  //cut off first char
+	  console.log(newPath);
+      return goto(newPath);
     } else {
-      goto("/secronet");
+      return goto("/secronet");
     }
+	return false;
   }
 </script>
 
 <svelte:head />
-<a on:click={goUpOnePathComponent} href="#"
+<a on:click={goUpOnePathComponent} 
+style="cursor:pointer;">
   ><img src="{base}/logo.svg" alt="Secronet logo" /></a
 >
 <slot />
