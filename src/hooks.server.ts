@@ -8,6 +8,17 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (user == undefined) {
     throw new Error("no auth");
   }
+const str_groups = event.request.headers.get("REMOTE_GROUPS") ??
+    process.env.REMOTE_GROUPS;
+  if (str_groups == undefined) {
+    throw new Error("no groups");
+  }
+  const groups = str_groups.split(",");
+  // check if secronet is in groups
+  if (!groups.includes("secronet")) {
+	throw new Error("not in group");
+  }
+
   event.locals.user = user;
 
   return resolve(event);
