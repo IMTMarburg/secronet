@@ -19,6 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (!groups.includes("secronet")) {
     //I need to redirect to /auth?missing=secronet
     console.log("redirecting to /auth?missing=secronet");
+	console.log("Groups was" + JSON.stringify(groups));
     return new Response(null, {
       status: 302,
       headers: { location: "/auth/?missing=secronet" },
