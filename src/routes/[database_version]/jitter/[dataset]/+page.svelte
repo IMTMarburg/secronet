@@ -72,7 +72,7 @@
         })
     );
     //set anchor to identifier
-    window.location.hash = identifier;
+    window.location.hash = formatHashParameters(identifier, value_column);
     data = await data.json();
     meta = data["meta"];
     var df = JSON.parse(data["data"]);
@@ -393,7 +393,7 @@
   Loading...
 {:else}
   You have chosen:
-  <a href="#{formatHashParameters(selected, value_column)}">{selected}</a>
+	<a href="/secronet/{database_version}/jitter/{dataset}#{formatHashParameters(selected, value_column)}">{selected}</a>
 {/if}
 
 <div bind:this={bokeh_target} />
