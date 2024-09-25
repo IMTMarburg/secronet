@@ -1,4 +1,5 @@
 import type { Handle } from "@sveltejs/kit";
+import { redirect } from "@sveltejs/kit";
 
 export const handle: Handle = async ({ event, resolve }) => {
   //const url = new URL(event.request.url);
@@ -6,9 +7,9 @@ export const handle: Handle = async ({ event, resolve }) => {
   const user = event.request.headers.get("REMOTE_USER") ??
     process.env.REMOTE_USER;
   if (user == undefined) {
-    throw new Error("no auth");
+    throw new Error("no auth"); // this should not happen if the nginx is working
   }
-const str_groups = event.request.headers.get("REMOTE_GROUPS") ??
+  const str_groups = event.request.headers.get("REMOTE_GROUPS") ??
     process.env.REMOTE_GROUPS;
   if (str_groups == undefined) {
     throw new Error("no groups");
@@ -16,7 +17,12 @@ const str_groups = event.request.headers.get("REMOTE_GROUPS") ??
   const groups = str_groups.split(",");
   // check if secronet is in groups
   if (!groups.includes("secronet")) {
-	throw new Error("not in group");
+    //I need to redirect to /auth?missing=secronet
+    console.log("redirecting to /auth?missing=secronet");
+    return new Response(null, {
+      status: 302,
+      headers: { location: "/auth/?missing=secronet" },
+    });
   }
 
   event.locals.user = user;
