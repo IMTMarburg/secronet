@@ -22,6 +22,12 @@ export async function list_databases(): Promise<string[]> {
   return folders;
 }
 
+export function get_database_zip(database_version: string): string {
+	let filename = database_root + (database_version + ".zip");
+	return filename
+
+}
+
 async function check_database_version(database_version: String) {
   let databases = await list_databases();
   if (!databases.includes(database_version)) {

@@ -119,6 +119,8 @@
 
 <hr />
 <a href="{base}/{data.database_version}/cross_dataset">Cross Dataset view</a>
+<br />
+<a href="{base}/{data.database_version}/download">Download</a>
 <style>
 
  :global(.tooltip) {

@@ -14,7 +14,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (str_groups == undefined) {
     throw new Error("no groups");
   }
-  const groups = str_groups.split("\t");
+  /* const groups = str_groups.split("\t");
   // check if secronet is in groups
   if (!groups.includes("secronet")) {
     //I need to redirect to /auth?missing=secronet
@@ -24,7 +24,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       status: 302,
       headers: { location: "/auth/?missing=secronet" },
     });
-  }
+  } */
 
   event.locals.user = user;
 
