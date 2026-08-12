@@ -44,6 +44,19 @@
               runHook preInstall
               mkdir -p $out
               cp -r build $out/build
+
+              yarn install \
+                --frozen-lockfile \
+                --force \
+                --production=true \
+                --ignore-engines \
+                --ignore-platform \
+                --ignore-scripts \
+                --no-progress \
+                --non-interactive \
+                --offline
+              cp -r node_modules $out/node_modules
+
               runHook postInstall
             '';
           });
