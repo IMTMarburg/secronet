@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
     gitignore = {
       url = "github:hercules-ci/gitignore.nix";
@@ -22,29 +22,43 @@
         gitignoreSource = gitignore.lib.gitignoreSource;
       in rec {
         packages = rec {
-          site-src = pkgs.mkYarnPackage rec {
-            name = "${packageJSON.name}-site-${version}";
+          yarnOfflineCache = pkgs.fetchYarnDeps {
+            yarnLock = ./yarn.lock;
+            hash = "sha256-f42j83cXztTOXKkDTYEN//doYxDrlZjQDuYZ5O9P/4A=";
+          };
+
+          site-src = pkgs.stdenv.mkDerivation (finalAttrs: {
+            pname = "${packageJSON.name}-site";
             version = packageJSON.version;
             src = gitignoreSource ./.;
-            packageJson = "${src}/package.json";
-            yarnLock = "${src}/yarn.lock";
-            buildPhase = ''
-              yarn --offline build
+
+            nativeBuildInputs = [
+              pkgs.yarnConfigHook
+              pkgs.yarnBuildHook
+              pkgs.nodejs
+            ];
+
+            inherit yarnOfflineCache;
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out
+              cp -r build $out/build
+              runHook postInstall
             '';
-            distPhase = "true";
-          };
+          });
 
           default = pkgs.writeShellApplication {
             name = packageJSON.name;
             runtimeInputs = [site-src pkgs.nodejs];
             text = ''
-              node ${site-src}/libexec/${packageJSON.name}/deps/${packageJSON.name}/build
+              node ${site-src}/build
             '';
           };
         };
 
         devShell = pkgs.mkShell {
-          buildInputs = [pkgs.yarn pkgs.nodejs pkgs.nodePackages_latest.typescript-language-server];
+          buildInputs = [pkgs.yarn pkgs.nodejs pkgs.typescript-language-server];
           shellHook = ''
             export PATH=$PATH:$(pwd)/node_modules/.bin/
           '';
